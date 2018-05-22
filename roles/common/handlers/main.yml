@@ -1,0 +1,12 @@
+- name: newaliases
+  shell: /usr/bin/newaliases
+- name: update-exim4
+  shell: /usr/sbin/update-exim4.conf
+- name: reload_exim
+  service:
+    name: exim4
+    state: reloaded
+- name: reload_chrony
+  service:
+    name: chrony
+    state: restarted

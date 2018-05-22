@@ -1,0 +1,204 @@
+- name: Web Server EC2 group
+  ec2_group:
+    state: present
+    name: Web Server
+    tags:
+      Name: web
+    description: Allow SSH and HTTP
+    rules:
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        from_port: 80
+        to_port: 80
+        cidr_ipv6: ::/0
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ ssh_ipv4 }}"
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ipv6: "{{ ssh_ipv6 }}"
+    rules_egress:
+      - proto: all
+        cidr_ip: 0.0.0.0/0
+      - proto: all
+        cidr_ipv6: ::/0
+  register: server_group
+- name: SSH key
+  ec2_key:
+    state: present
+    name: "{{ ssh_id }}"
+    key_material: "{{ ssh_key }}"
+- name: VPC
+  ec2_vpc_net:
+    state: present
+    name: Default
+    cidr_block: "{{ net_ipv4 }}"
+#    ipv6_cidr: "{{ net_ipv6 }}"
+    dns_hostnames: yes
+    dns_support: yes
+  register: vpc_details
+- name: VPC subnet
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpc_details.vpc.id }}"
+    map_public: yes
+    assign_instances_ipv6: yes
+    cidr: "{{ subnet_ipv4 }}"
+    ipv6_cidr: "{{ subnet_ipv6 }}"
+    az: "{{ aws_region }}a"
+  register: vpc_subnet
+
+
+- name: IAM role EC2
+  iam_role:
+    state: present
+    assume_role_policy_document: 
+      Version: '2012-10-17'
+      Statement:
+        - Effect: Allow
+          Action: 'sts:AssumeRole'
+          Sid: ''
+          Principal:
+            Service: 'ec2.amazonaws.com'
+    name: DjangoSite
+  register: django_role
+#- name: IAM policy EC2
+#  iam_policy:
+#    state: present
+#    iam_type: role
+#    iam_name: "{{ django_role.iam_role.role_name }}"
+#    policy_name: Django_EC2
+#    policy_json:
+#      Version: '2012-10-17'
+#      Statement:
+#        - Action:
+#          - 'ec2:Describe*'
+#          - 'ec2:CreateTags'
+#          Effect: Allow
+#          Resource:
+#          - '*'
+#- name: IAM policy Logs
+#  iam_policy:
+#    state: present
+#    iam_type: role
+#    iam_name: "{{ django_role.iam_role.role_name }}"
+#    policy_name: Django_Logs
+#    policy_json:
+#      Version: '2012-10-17'
+#      Statement:
+#        - Action:
+#          - 'logs:*'
+#          Effect: Allow
+#          Resource:
+#          - 'arn:aws:logs:*:*:*'
+#- name: IAM policy S3
+#  iam_policy:
+#    state: present
+#    iam_type: role
+#    iam_name: "{{ django_role.iam_role.role_name }}"
+#    policy_name: Django_S3
+#    policy_json:
+#      Statement:
+#        - Action:
+#          - 's3:ListBucket'
+#          - 's3:GetBucketLocation'
+#          - 's3:ListBucketMultipartUploads'
+#          - 's3:ListBucketVersions'
+#          Effect: Allow
+#          Resource:
+#          - 'arn:aws:s3:::static-test.thepoint.org.au'
+#          - 'arn:aws:s3:::media-test.thepoint.org.au'
+#          - 'arn:aws:s3:::static.thepoint.org.au'
+#          - 'arn:aws:s3:::media.thepoint.org.au'
+#          - 'arn:aws:s3:::thepoint-backup'
+#          - 'arn:aws:s3:::thepoint-logs'
+#        - Action:
+#          - 's3:*Object*'
+#          - 's3:ListMultipartUploadParts'
+#          - 's3:AbortMultipartUpload'
+#          Effect: Allow
+#          Resource:
+#          - 'arn:aws:s3:::static-test.thepoint.org.au/*'
+#          - 'arn:aws:s3:::media-test.thepoint.org.au/*'
+#          - 'arn:aws:s3:::static.thepoint.org.au/*'
+#          - 'arn:aws:s3:::media.thepoint.org.au/*'
+#          - 'arn:aws:s3:::thepoint-backup/*'
+#          - 'arn:aws:s3:::thepoint-logs/*'
+#- name: IAM policy SES
+#  iam_policy:
+#    state: present
+#    iam_type: role
+#    iam_name: "{{ django_role.iam_role.role_name }}"
+#    policy_name: Django_SES
+#    policy_json:
+#      Statement:
+#        - Action:
+#          - 'ses:SendEmail'
+#          - 'ses:SendRawEmail'
+#          Effect: Allow
+#          Resource:
+#          - '*'
+#      Version: '2012-10-17'
+
+
+
+
+#
+- name: Provision "{{ hostname }}"
+  ec2:
+    key_name: "{{ ssh_id }}"
+    group: "{{ server_group.group_name }}"
+    instance_type: "{{ aws_instance_type }}"
+    instance_profile_name: "{{ django_role.iam_role.role_name }}"
+    image: "{{ aws_image }}"
+    wait: yes
+    wait_timeout: 600
+    volumes:
+      - device_name: /dev/sdb
+        volume_type: gp2
+        volume_size: "{{ volume_size }}"
+    termination_protection: yes
+    user_data: |
+      #cloud-config
+      
+      apt_upgrade: true
+      hostname: "{{ hostname.split('.')[0] }}"
+      fqdn: "{{ hostname }}"
+      manage_etc_hosts: true
+      packages:
+        python-apt
+      power_state:
+        mode: reboot
+    count_tag:
+      Name: "{{ hostname }}"
+    exact_count: 1
+    instance_tags:
+      Name: "{{ hostname }}"
+      Role: "{{ instance_role }}"
+  register: ec2_instance
+
+- name: Cloudflare DNS
+  cloudflare_dns:
+    state: present
+    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
+    type: A
+    record: "{{ hostname.split('.')[0] }}"
+    value: "{{ ec2_instance.tagged_instances[0].public_ip }}"
+    proxied: no
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_token }}"
+#- name: Cloudflare DNS
+#  cloudflare_dns:
+#    state: present
+#    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
+#    type: AAAA
+#    record: "{{ hostname.split('.')[0] }}"
+#    value: "{{ ec2_instance.tagged_instances[0].public_ipv6 }}"
+#    proxied: no
+#    account_email: "{{ cloudflare_email }}"
+#    account_api_token: "{{ cloudflare_token }}"

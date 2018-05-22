@@ -1,0 +1,7 @@
+. ~/.environment
+
+for k in $(awk -F = '/^[^#]/{print $1}' ~/.environment); do
+    export $k
+done
+
+PATH="$HOME/venv/bin:$PATH"

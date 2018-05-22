@@ -1,0 +1,7 @@
+ansible_user: admin
+root_mail: admin@thepoint.org.au
+root_from: admin@thepoint.org.au
+smtp_relay: "email-smtp.{{ ansible_ec2_placement_region }}.amazonaws.com::587"
+smtp_relay_domain: amazonaws.com
+ntp_servers:
+  - 169.254.169.123

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+BUCKET='{{ log_bucket }}'
+
+for log in django nginx; do
+    /usr/bin/aws s3 sync /var/log/${log}/ "s3://${BUCKET}/${log}" --exclude=*.log --quiet
+done

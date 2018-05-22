@@ -1,0 +1,112 @@
+- name: Django user
+  postgresql_user:
+    name: "{{ user }}"
+    state: present
+  become_user: postgres
+- name: Django db
+  postgresql_db:
+    name: "{{ user }}"
+    state: present
+    owner: "{{ user }}"
+  become_user: postgres
+  notify: "django_migrate {{ user }}"
+- name: Django user
+  user:
+    name: "{{ user }}"
+    state: present
+    home: "/srv/django/{{ user }}"
+    shell: /bin/bash
+- name: Configure bash profile
+  copy:
+    src: bash_profile
+    dest: "/srv/django/{{ user }}/.bash_profile"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0640
+- name: Configure environment
+  template:
+    src: environment
+    dest: "/srv/django/{{ user }}/.environment"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0640
+  notify:
+    - "django_collectstatic {{ user }}"
+    - "django_migrate {{ user }}"
+    - "gunicorn_reload {{ user }}"
+    - "update_crontab {{ user }}"
+- name: Configure venv requirements
+  copy:
+    src: "{{ requirements_file }}"
+    dest: "/srv/django/{{ user }}/requirements.txt"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0640
+- name: Install Python requirements
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - python3-venv
+    - python3-pip
+- name: Install virtualenv
+  pip:
+    state: present
+    virtualenv: "/srv/django/{{ user }}/venv"
+    virtualenv_command: pyvenv
+    requirements: "/srv/django/{{ user }}/requirements.txt"
+  become_user: "{{ user }}"
+  notify:
+    - "django_collectstatic {{ user }}"
+    - "django_migrate {{ user }}"
+    - "gunicorn_reload {{ user }}"
+- name: SystemD socket
+  template:
+    src: thepoint.socket
+    dest: "/etc/systemd/system/{{ user }}.socket"
+    owner: root
+    group: root
+    mode: 0644
+- name: SystemD service
+  template:
+    src: thepoint.service
+    dest: "/etc/systemd/system/{{ user }}.service"
+    owner: root
+    group: root
+    mode: 0644
+- name: Enable SystemD socket
+  systemd:
+    name: "{{ user }}.socket"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+- name: NGINX virtual host
+  template:
+    src: nginx.conf
+    dest: "/etc/nginx/sites-enabled/{{ user }}"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart_nginx
+- name: crontab
+  when: has_crontab
+  copy:
+    src: crontab
+    dest: "/srv/django/{{ user }}/crontab"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0640
+  notify: "update_crontab {{ user }}"
+- name: Cloudflare DNS
+  when:
+    - cloudflare_email is defined
+    - cloudflare_token is defined
+    - "cloudflare_email.split('@')[1] in item"
+  cloudflare_dns:
+    state: present
+    zone: "{{ cloudflare_email.split('@')[1] }}"
+    type: CNAME
+    record: "{{ item.replace('.' + cloudflare_email.split('@')[1], '') }}"
+    value: "{{ ansible_fqdn }}"
+    proxied: yes
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_token }}"
+  with_items: "{{ vhost.split(' ') }}"

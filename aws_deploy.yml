@@ -1,0 +1,38 @@
+- hosts: tag_Role_thepoint_website
+  become: yes
+  pre_tasks:
+    - name: Gathering EC2 Facts
+      action: ec2_metadata_facts
+  roles:
+    - aws
+    - common
+    - django_db
+    - django_nginx
+
+# Test website
+
+    - thepoint_test:
+      name: thepoint_website
+      user: thepoint_test
+      description: The Point Test
+      requirements_file: requirements_test.txt
+      vhost: test.thepoint.org.au
+      debug: true
+      secret_key: "{{ test_secret_key }}"
+      static_bucket: static-test.thepoint.org.au
+      media_bucket: media-test.thepoint.org.au
+      syslog_tag: thepoint_test
+
+# Production website
+
+    - thepoint_prod:
+      name: thepoint_website
+      user: thepoint
+      description: The Point
+      requirements_file: requirements.txt
+      vhost: thepoint.org.au www.thepoint.org.au
+      secret_key: "{{ prod_secret_key }}"
+      static_bucket: static.thepoint.org.au
+      media_bucket: media.thepoint.org.au
+      backup_bucket: thepoint-backup
+      syslog_tag: thepoint_prod

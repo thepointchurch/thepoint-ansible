@@ -1,0 +1,88 @@
+- name: Set the locale to en_AU.UTF-8
+  locale_gen: name=en_AU.UTF-8 state=present
+- name: Set the timezone to Australia/Brisbane
+  timezone: name=Australia/Brisbane
+- name: Install miscellaneous packages
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - acl
+    - aptitude
+    - dnsutils
+    - git
+    - net-tools
+- name: Install unattended upgrades
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - unattended-upgrades
+    - apt-listchanges
+- name: Configure unattended upgrades (periodic)
+  copy:
+    src: unattend/20auto-upgrades
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: 0644
+- name: Configure unattended upgrades
+  template:
+    src: unattend/50unattended-upgrades
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: 0644
+- name: Install chrony
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - chrony
+- name: Configure chrony
+  template:
+    src: chrony/chrony.conf
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload_chrony
+- name: Install Exim
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - exim4-daemon-light
+- name: Configure root mail
+  when: root_mail is defined
+  lineinfile:
+    state: present
+    dest: /etc/aliases
+    line: 'root: {{ root_mail }}'
+    regexp: '^root: '
+  notify: newaliases
+- name: Configure root mail
+  when: root_from is defined
+  lineinfile:
+    state: present
+    dest: /etc/email-addresses
+    line: 'root: {{ root_from }}'
+    regexp: '^root: '
+- name: Configure Exim
+  template:
+    src: exim/update-exim4.conf.conf
+    dest: /etc/exim4/update-exim4.conf.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - update-exim4
+    - reload_exim
+- name: Configure Exim credentials
+  when:
+    - smtp_user is defined
+    - smtp_password is defined
+  template:
+    src: exim/passwd.client
+    dest: /etc/exim4/passwd.client
+    owner: root
+    group: root
+    mode: 0644
+- name: Format Filesystems
+  filesystem: fstype=ext4 dev=/dev/{{ item.key }}
+  with_dict: "{{ filesystems }}"
+- name: Mount Filesystems
+  mount: state=mounted src=/dev/{{ item.key }} name={{ item.value }} fstype=ext4 opts=noatime passno=2
+  with_dict: "{{ filesystems }}"

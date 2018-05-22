@@ -1,0 +1,4 @@
+aws_region: us-west-2
+aws_instance_type: t2.micro
+aws_image: ami-dac6b5a2
+volume_size: 4

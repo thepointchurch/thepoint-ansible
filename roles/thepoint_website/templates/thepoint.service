@@ -1,0 +1,25 @@
+[Unit]
+Description={{ description }} service
+Requires={{ user }}.socket
+After=network.target
+
+[Service]
+PIDFile=/run/{{ user }}/pid
+User={{ user }}
+Group={{ user }}
+RuntimeDirectory={{ user }}
+WorkingDirectory=/srv/django/{{ user }}
+EnvironmentFile=/srv/django/{{ user }}/.environment
+ExecStart=/srv/django/{{ user }}/venv/bin/gunicorn \
+          --pid /run/{{ user }}/pid \
+          --bind unix:/run/{{ user }}/socket \
+          --workers {{ workers }} \
+          --threads {{ threads }} \
+          --log-syslog-to "unix:///dev/log#dgram" --log-syslog \
+          --name "{{ description }}" thepoint.wsgi
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

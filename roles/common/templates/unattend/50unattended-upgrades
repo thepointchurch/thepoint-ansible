@@ -1,0 +1,10 @@
+Unattended-Upgrade::Origins-Pattern {
+        "o={{ ansible_distribution }},n={{ ansible_distribution_release }}";
+        "o={{ ansible_distribution }},n={{ ansible_distribution_release }}-updates";
+        "o={{ ansible_distribution }},n={{ ansible_distribution_release }},l=Debian-Security";
+};
+
+Unattended-Upgrade::Package-Blacklist {
+};
+
+Unattended-Upgrade::Mail "root";

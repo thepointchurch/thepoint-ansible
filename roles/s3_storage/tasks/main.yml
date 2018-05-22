@@ -1,0 +1,36 @@
+- name: S3 bucket "{{ bucket }}"
+  s3_bucket:
+    state: present
+    name: "{{ bucket }}"
+    policy: '{% if website %}{"Version": "2008-10-17", "Statement": [{"Sid": "", "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::{{ bucket }}/*"}]}{% else %}null{% endif %}'
+    versioning: "{{ versioning }}"
+    tags: "{{ bucket_tags }}"
+- name: S3 CORS "{{ bucket }}"
+  when: "'.' in bucket"
+  aws_s3_cors:
+    state: present
+    name: "{{ bucket }}"
+    rules:
+      - allowed_origins:
+        - '*'
+        allowed_methods:
+        - GET
+        allowed_headers:
+        - Authorization
+        max_age_seconds: 3000
+- name: S3 website "{{ bucket }}"
+  when: website
+  s3_website:
+    state: present
+    name: "{{ bucket }}"
+- name: Cloudflare "{{ bucket }}"
+  when: "'.' in bucket"
+  cloudflare_dns:
+    state: present
+    zone: "{{ '.'.join(bucket.split('.')[1:]) }}"
+    type: CNAME
+    record: "{{ bucket.split('.')[0] }}"
+    value: "{{ bucket }}.s3{% if website %}-website{% endif %}-{{ aws_region }}.amazonaws.com"
+    proxied: yes
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_token }}"

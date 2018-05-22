@@ -1,0 +1,68 @@
+- name: Install NGINX server
+  apt: package={{ item }} state=present force=yes
+  with_items:
+    - nginx-full
+    - curl
+- name: NGINX service
+  service:
+    name: nginx
+    state: started
+    enabled: true
+- name: Remove default NGINX config
+  file:
+    state: absent
+    dest: /etc/nginx/sites-enabled/default
+  notify: reload_nginx
+- name: Disable NGINX server tokens
+  lineinfile:
+    state: present
+    dest: /etc/nginx/conf.d/00_server_tokens.conf
+    create: yes
+    line: 'server_tokens off;'
+    regexp: '^server_tokens '
+  notify: reload_nginx
+- name: Install Cloudflare IP updater script
+  copy:
+    src: update_cloudflare_ips.sh
+    dest: /usr/local/bin/update_cloudflare_ips.sh
+    owner: root
+    group: root
+    mode: 0750
+- name: Update Cloudflare Source IPs
+  shell: /usr/local/bin/update_cloudflare_ips.sh >/etc/nginx/conf.d/00_real_ip.conf
+  args:
+    creates: /etc/nginx/conf.d/00_real_ip.conf
+  notify: reload_nginx
+- name: Keep 7 days of NGINX logs
+  lineinfile:
+    state: present
+    dest: /etc/logrotate.d/nginx
+    line: '	rotate 7'
+    regexp: '^\s*rotate '
+- name: Don't delay compression of NGINX logs
+  lineinfile:
+    state: absent
+    dest: /etc/logrotate.d/nginx
+    regexp: '^\s*delaycompress$'
+- name: Create Django log directory
+  file:
+    state: directory
+    dest: /var/log/django
+    owner: root
+    group: adm
+    mode: 0750
+- name: Configure rsyslog for Django logs
+  copy:
+    src: rsyslog_django
+    dest: /etc/rsyslog.d/90-django.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: reload_rsyslog
+- name: Rotate Django logs
+  copy:
+    src: logrotate_django
+    dest: /etc/logrotate.d/django
+    owner: root
+    group: root
+    mode: 0644

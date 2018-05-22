@@ -1,0 +1,59 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+  roles:
+
+# Utility buckets
+
+    - thepoint-logs:
+      name: s3_storage
+      bucket: thepoint-logs
+      bucket_tags:
+        type: logs
+        website: thepoint
+    - thepoint-backup:
+      name: s3_storage
+      bucket: thepoint-backup
+      bucket_tags:
+        type: backup
+        website: thepoint
+      versioning: true
+
+# Production buckets
+
+    - static.thepoint.org.au:
+      name: s3_storage
+      bucket: static.thepoint.org.au
+      website: true
+      bucket_tags:
+        type: website
+        website: thepoint
+    - media.thepoint.org.au:
+      name: s3_storage
+      bucket: media.thepoint.org.au
+      bucket_tags:
+        type: website
+        website: thepoint
+
+# Test buckets
+
+    - static-test.thepoint.org.au:
+      name: s3_storage
+      bucket: static-test.thepoint.org.au
+      website: true
+      bucket_tags:
+        type: website
+        website: thepoint
+    - media-test.thepoint.org.au:
+      name: s3_storage
+      bucket: media-test.thepoint.org.au
+      bucket_tags:
+        type: website
+        website: thepoint
+
+# Production/test VM
+
+    - thepoint_website:
+      name: thepoint_ec2
+      hostname: silas.thepoint.org.au
+      instance_role: thepoint_website

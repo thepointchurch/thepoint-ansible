@@ -1,0 +1,8 @@
+vhost: "{{ user }}.{{ ansible_domain }}"
+workers: 3
+threads: 12
+db_engine: django.db.backends.postgresql
+db_name: "{{ user }}"
+debug: false
+has_crontab: false
+requirements_file: requirements.txt
