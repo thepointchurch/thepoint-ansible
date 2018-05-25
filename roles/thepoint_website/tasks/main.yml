@@ -47,6 +47,7 @@
   with_items:
     - python3-venv
     - python3-pip
+    - libpq-dev
 - name: Install virtualenv
   pip:
     state: present
