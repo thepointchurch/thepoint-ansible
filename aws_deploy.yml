@@ -36,3 +36,4 @@
       media_bucket: media.thepoint.org.au
       backup_bucket: thepoint-backup
       syslog_tag: thepoint_prod
+      has_crontab: true
