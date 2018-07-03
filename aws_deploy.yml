@@ -35,5 +35,6 @@
       static_bucket: static.thepoint.org.au
       media_bucket: media.thepoint.org.au
       backup_bucket: thepoint-backup
+      email_backend: django_sendmail_backend.backends.EmailBackend
       syslog_tag: thepoint_prod
       has_crontab: true

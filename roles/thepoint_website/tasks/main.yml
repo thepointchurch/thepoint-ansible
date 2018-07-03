@@ -23,6 +23,13 @@
     owner: "{{ user }}"
     group: "{{ user }}"
     mode: 0640
+- name: Configure mail alias
+  lineinfile:
+    state: present
+    dest: /etc/aliases
+    line: "{{ user }}: root"
+    regexp: "^{{ user }}: "
+  notify: newaliases
 - name: Configure environment
   template:
     src: environment

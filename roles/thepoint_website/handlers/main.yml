@@ -25,5 +25,5 @@
     state: reloaded
 - name: "update_crontab {{ user }}"
   when: has_crontab
-  shell: cat "/srv/django/{{ user }}/.environment" "/srv/django/{{ user }}/crontab" | /usr/bin/crontab -
+  shell: (echo "PATH=/srv/django/{{ user }}/venv/bin:/usr/bin:/bin" ; cat "/srv/django/{{ user }}/.environment" "/srv/django/{{ user }}/crontab") | /usr/bin/crontab -
   become_user: "{{ user }}"
