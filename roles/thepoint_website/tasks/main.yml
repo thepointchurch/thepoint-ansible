@@ -57,7 +57,7 @@
     - libpq-dev
 - name: Install virtualenv
   pip:
-    state: present
+    state: latest
     virtualenv: "/srv/django/{{ user }}/venv"
     virtualenv_command: pyvenv
     requirements: "/srv/django/{{ user }}/requirements.txt"
