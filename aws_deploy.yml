@@ -22,6 +22,7 @@
       static_bucket: static-test.thepoint.org.au
       media_bucket: media-test.thepoint.org.au
       syslog_tag: thepoint_test
+      ssl: true
 
 # Production website
 
@@ -38,3 +39,4 @@
       email_backend: django_sendmail_backend.backends.EmailBackend
       syslog_tag: thepoint_prod
       has_crontab: true
+      ssl: true

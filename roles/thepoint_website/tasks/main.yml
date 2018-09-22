@@ -66,6 +66,15 @@
     - "django_collectstatic {{ user }}"
     - "django_migrate {{ user }}"
     - "gunicorn_reload {{ user }}"
+- name: Gunicorn configuration
+  template:
+    src: gunicorn
+    dest: "/srv/django/{{ user }}/.gunicorn"
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: 0644
+  notify:
+    - "gunicorn_reload {{ user }}"
 - name: SystemD socket
   template:
     src: thepoint.socket
@@ -118,3 +127,9 @@
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
   with_items: "{{ vhost.split(' ') }}"
+- name: LetsEncrypt Certificate
+  when:
+    - ssl
+  command: "/usr/local/bin/certbot certonly -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /root/cloudflare.ini --dns-cloudflare-propagation-seconds 20 {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
+  args:
+    creates: "/etc/letsencrypt/live/{{ vhost.split(' ')[0] }}/fullchain.pem"

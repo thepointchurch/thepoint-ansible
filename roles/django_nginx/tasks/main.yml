@@ -3,6 +3,37 @@
   with_items:
     - nginx-full
     - curl
+    - python-pip
+- name: Cloudflare certbot
+  pip:
+    name: '{{ item }}'
+    state: latest
+    executable: pip2
+  with_items:
+    - certbot
+    - certbot-dns-cloudflare
+- name: Create LetsEncrypt directory
+  file:
+    state: directory
+    dest: /etc/letsencrypt
+    owner: root
+    group: root
+    mode: 0755
+- name: LetsEncrypt config
+  lineinfile:
+    state: present
+    dest: /etc/letsencrypt/cli.ini
+    create: yes
+    line: 'email = {{ root_mail }}'
+    regexp: '^email = '
+- name: Certbot renewal
+  cron:
+    name: certbot renew
+    minute: 0
+    hour: '*/12'
+    user: root
+    job: "/usr/bin/perl -e 'sleep int(rand(3600))' && /usr/local/bin/certbot -q renew"
+    cron_file: certbot
 - name: NGINX service
   service:
     name: nginx
@@ -21,6 +52,13 @@
     line: 'server_tokens off;'
     regexp: '^server_tokens '
   notify: reload_nginx
+- name: Configure environment
+  template:
+    src: cloudflare
+    dest: "/root/cloudflare.ini"
+    owner: root
+    group: root
+    mode: 0600
 - name: Install Cloudflare IP updater script
   copy:
     src: update_cloudflare_ips.sh
@@ -33,6 +71,10 @@
   args:
     creates: /etc/nginx/conf.d/00_real_ip.conf
   notify: reload_nginx
+- name: DH key
+  command: /usr/bin/openssl dhparam -out /etc/ssl/dhparam.pem 4096
+  args:
+    creates: /etc/ssl/dhparam.pem
 - name: Keep 7 days of NGINX logs
   lineinfile:
     state: present

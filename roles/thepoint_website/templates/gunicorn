@@ -1,0 +1,8 @@
+proc_name = '{{ description }}'
+workers = 3
+threads = 12
+syslog = True
+syslog_addr = 'unix:///dev/log#dgram'
+disable_access_log_redirection = False
+secure_scheme_headers = { 'X-FORWARDED-PROTOCOL' : 'ssl', 'X-FORWARDED-PROTO' : 'https', 'X-FORWARDED-SSL' : 'on' }
+forwarded_allow_ips = '*'

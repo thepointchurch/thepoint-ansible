@@ -11,12 +11,10 @@ RuntimeDirectory={{ user }}
 WorkingDirectory=/srv/django/{{ user }}
 EnvironmentFile=/srv/django/{{ user }}/.environment
 ExecStart=/srv/django/{{ user }}/venv/bin/gunicorn \
+          --config /srv/django/{{ user }}/.gunicorn \
           --pid /run/{{ user }}/pid \
           --bind unix:/run/{{ user }}/socket \
-          --workers {{ workers }} \
-          --threads {{ threads }} \
-          --log-syslog-to "unix:///dev/log#dgram" --log-syslog \
-          --name "{{ description }}" thepoint.wsgi
+          thepoint.wsgi
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
 PrivateTmp=true
