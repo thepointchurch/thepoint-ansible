@@ -49,6 +49,11 @@
     owner: "{{ user }}"
     group: "{{ user }}"
     mode: 0640
+  notify:
+    - "django_collectstatic {{ user }}"
+    - "django_migrate {{ user }}"
+    - "gunicorn_reload {{ user }}"
+    - "update_crontab {{ user }}"
 - name: Install Python requirements
   apt: package={{ item }} state=present force=yes
   with_items:
