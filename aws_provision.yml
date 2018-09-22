@@ -24,7 +24,7 @@
     - static.thepoint.org.au:
       name: s3_storage
       bucket: static.thepoint.org.au
-      website: true
+      public: true
       bucket_tags:
         type: website
         website: thepoint
@@ -40,7 +40,7 @@
     - static-test.thepoint.org.au:
       name: s3_storage
       bucket: static-test.thepoint.org.au
-      website: true
+      public: true
       bucket_tags:
         type: website
         website: thepoint
