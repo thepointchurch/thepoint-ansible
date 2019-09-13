@@ -1,17 +1,31 @@
+- name: Enable contrib repo
+  template:
+    src: sources.list
+    dest: "/etc/apt/sources.list"
+    owner: root
+    group: root
+    mode: 0644
 - name: Install NGINX server
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - nginx-full
-    - curl
-    - python-pip
+  apt:
+    pkg:
+      - nginx-full
+      - curl
+      - python-pip
+      - libcairo2
+      - libgdk-pixbuf2.0-0
+      - libpango-1.0-0
+      - libpangocairo-1.0-0
+      - ttf-mscorefonts-installer
+    state: present
+    force: yes
+    update_cache: yes
 - name: Cloudflare certbot
   pip:
-    name: '{{ item }}'
+    name:
+      - certbot
+      - certbot-dns-cloudflare
     state: latest
     executable: pip2
-  with_items:
-    - certbot
-    - certbot-dns-cloudflare
 - name: Create LetsEncrypt directory
   file:
     state: directory
@@ -29,7 +43,7 @@
 - name: Certbot renewal
   cron:
     name: certbot renew
-    minute: 0
+    minute: '0'
     hour: '*/12'
     user: root
     job: "/usr/bin/perl -e 'sleep int(rand(3600))' && /usr/local/bin/certbot -q renew"
@@ -108,3 +122,12 @@
     owner: root
     group: root
     mode: 0644
+- name: Install Fira font
+  unarchive:
+    src: https://github.com/mozilla/Fira/archive/4.202.tar.gz
+    dest: /usr/local/share/fonts
+    remote_src: yes
+    creates: /usr/local/share/fonts/FiraSans-Regular.otf
+    extra_opts:
+    - Fira-4.202/otf
+    - --strip-components=2

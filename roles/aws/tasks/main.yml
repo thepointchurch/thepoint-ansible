@@ -1,8 +1,10 @@
 - name: Install AWS CLI
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - awscli
-    - curl
+  apt:
+    pkg:
+      - awscli
+      - curl
+    state: present
+    force: yes
 - name: Create AWS CLI configuration directory
   file:
     state: directory

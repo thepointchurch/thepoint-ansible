@@ -10,30 +10,20 @@
         from_port: 80
         to_port: 80
         cidr_ip: 0.0.0.0/0
-      - proto: tcp
-        from_port: 80
-        to_port: 80
         cidr_ipv6: ::/0
       - proto: tcp
         from_port: 443
         to_port: 443
         cidr_ip: 0.0.0.0/0
-      - proto: tcp
-        from_port: 443
-        to_port: 443
         cidr_ipv6: ::/0
       - proto: tcp
         from_port: 22
         to_port: 22
         cidr_ip: "{{ ssh_ipv4 }}"
-      - proto: tcp
-        from_port: 22
-        to_port: 22
         cidr_ipv6: "{{ ssh_ipv6 }}"
     rules_egress:
       - proto: all
         cidr_ip: 0.0.0.0/0
-      - proto: all
         cidr_ipv6: ::/0
   register: server_group
 - name: SSH key
@@ -190,6 +180,9 @@
       Role: "{{ instance_role }}"
   register: ec2_instance
 
+- name: debug 1
+  debug:
+    msg: "{{ ec2_instance }}"
 - name: Cloudflare DNS
   cloudflare_dns:
     state: present

@@ -6,10 +6,12 @@
     group: root
     mode: 0755
 - name: Install PostgreSQL server
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - postgresql
-    - python-psycopg2
+  apt:
+    pkg:
+      - postgresql
+      - python-psycopg2
+    state: present
+    force: yes
 - name: Remove the default PostgreSQL cluster
   command: /usr/bin/pg_dropcluster --stop "{{ pg_version }}" main
   args:

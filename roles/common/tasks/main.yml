@@ -3,18 +3,22 @@
 - name: Set the timezone to Australia/Brisbane
   timezone: name=Australia/Brisbane
 - name: Install miscellaneous packages
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - acl
-    - aptitude
-    - dnsutils
-    - git
-    - net-tools
+  apt:
+    pkg:
+      - acl
+      - aptitude
+      - dnsutils
+      - git
+      - net-tools
+    state: present
+    force: yes
 - name: Install unattended upgrades
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - unattended-upgrades
-    - apt-listchanges
+  apt:
+    pkg:
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+    force: yes
 - name: Configure unattended upgrades (periodic)
   copy:
     src: unattend/20auto-upgrades
@@ -30,9 +34,11 @@
     group: root
     mode: 0644
 - name: Install chrony
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - chrony
+  apt:
+    pkg:
+      - chrony
+    state: present
+    force: yes
 - name: Configure chrony
   template:
     src: chrony/chrony.conf
@@ -42,9 +48,11 @@
     mode: 0644
   notify: reload_chrony
 - name: Install Exim
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - exim4-daemon-light
+  apt:
+    pkg:
+      - exim4-daemon-light
+    state: present
+    force: yes
 - name: Configure root mail
   when: root_mail is defined
   lineinfile:

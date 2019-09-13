@@ -55,11 +55,13 @@
     - "gunicorn_reload {{ user }}"
     - "update_crontab {{ user }}"
 - name: Install Python requirements
-  apt: package={{ item }} state=present force=yes
-  with_items:
-    - python3-venv
-    - python3-pip
-    - libpq-dev
+  apt:
+    pkg:
+      - python3-venv
+      - python3-pip
+      - libpq-dev
+    state: present
+    force: yes
 - name: Install virtualenv
   pip:
     state: latest
