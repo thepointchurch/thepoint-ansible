@@ -13,7 +13,7 @@ EnvironmentFile=/srv/django/{{ user }}/.environment
 ExecStart=/srv/django/{{ user }}/venv/bin/gunicorn \
           --config /srv/django/{{ user }}/.gunicorn \
           --pid /run/{{ user }}/pid \
-          --bind unix:/run/{{ user }}/socket \
+          --bind unix:/run/{{ user }}.socket \
           thepoint.wsgi
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s TERM $MAINPID
