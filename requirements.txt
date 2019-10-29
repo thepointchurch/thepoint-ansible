@@ -6,7 +6,7 @@ boto3==1.9.141
 botocore==1.12.141
 cffi==1.12.3
 colorama==0.4.1
-Django==2.2.1
+Django==2.2.4
 git+https://github.com/Alir3z4/django-markwhat.git@d4922a38e9b12d4987635405601b8b10ac1bf0a1#django-markwhat
 django-robots==3.1.0
 django-sendmail-backend==0.1.2
