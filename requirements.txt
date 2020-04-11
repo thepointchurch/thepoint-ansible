@@ -59,4 +59,4 @@ uritemplate==3.0.1
 urllib3==1.25.8
 WeasyPrint==51
 webencodings==0.5.1
-git+https://github.com/thepointchurch/thepoint.git@2.2.0#egg=thepoint
+git+https://github.com/thepointchurch/thepoint.git@2.2.1#egg=thepoint
