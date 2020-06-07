@@ -1,8 +1,7 @@
 aws_region: us-west-2
 aws_instance_type: t2.micro
 aws_image: ami-dac6b5a2
-ssh_ipv4: 58.6.0.0/15
-ssh_ipv6: 2001:44b8:2104::/48
+ssh_ipv6: 2001:44b8:2123:7b00::/56
 net_ipv4: 172.31.0.0/16
 net_ipv6: 2600:1f14:ef5:8800::/56
 subnet_ipv4: 172.31.32.0/20

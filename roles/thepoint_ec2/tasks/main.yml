@@ -7,11 +7,6 @@
     description: Allow SSH and HTTP
     rules:
       - proto: tcp
-        from_port: 80
-        to_port: 80
-        cidr_ip: 0.0.0.0/0
-        cidr_ipv6: ::/0
-      - proto: tcp
         from_port: 443
         to_port: 443
         cidr_ip: 0.0.0.0/0
@@ -19,7 +14,6 @@
       - proto: tcp
         from_port: 22
         to_port: 22
-        cidr_ip: "{{ ssh_ipv4 }}"
         cidr_ipv6: "{{ ssh_ipv6 }}"
     rules_egress:
       - proto: all
@@ -65,83 +59,83 @@
             Service: 'ec2.amazonaws.com'
     name: DjangoSite
   register: django_role
-#- name: IAM policy EC2
-#  iam_policy:
-#    state: present
-#    iam_type: role
-#    iam_name: "{{ django_role.iam_role.role_name }}"
-#    policy_name: Django_EC2
-#    policy_json:
-#      Version: '2012-10-17'
-#      Statement:
-#        - Action:
-#          - 'ec2:Describe*'
-#          - 'ec2:CreateTags'
-#          Effect: Allow
-#          Resource:
-#          - '*'
-#- name: IAM policy Logs
-#  iam_policy:
-#    state: present
-#    iam_type: role
-#    iam_name: "{{ django_role.iam_role.role_name }}"
-#    policy_name: Django_Logs
-#    policy_json:
-#      Version: '2012-10-17'
-#      Statement:
-#        - Action:
-#          - 'logs:*'
-#          Effect: Allow
-#          Resource:
-#          - 'arn:aws:logs:*:*:*'
-#- name: IAM policy S3
-#  iam_policy:
-#    state: present
-#    iam_type: role
-#    iam_name: "{{ django_role.iam_role.role_name }}"
-#    policy_name: Django_S3
-#    policy_json:
-#      Statement:
-#        - Action:
-#          - 's3:ListBucket'
-#          - 's3:GetBucketLocation'
-#          - 's3:ListBucketMultipartUploads'
-#          - 's3:ListBucketVersions'
-#          Effect: Allow
-#          Resource:
-#          - 'arn:aws:s3:::static-test.thepoint.org.au'
-#          - 'arn:aws:s3:::media-test.thepoint.org.au'
-#          - 'arn:aws:s3:::static.thepoint.org.au'
-#          - 'arn:aws:s3:::media.thepoint.org.au'
-#          - 'arn:aws:s3:::thepoint-backup'
-#          - 'arn:aws:s3:::thepoint-logs'
-#        - Action:
-#          - 's3:*Object*'
-#          - 's3:ListMultipartUploadParts'
-#          - 's3:AbortMultipartUpload'
-#          Effect: Allow
-#          Resource:
-#          - 'arn:aws:s3:::static-test.thepoint.org.au/*'
-#          - 'arn:aws:s3:::media-test.thepoint.org.au/*'
-#          - 'arn:aws:s3:::static.thepoint.org.au/*'
-#          - 'arn:aws:s3:::media.thepoint.org.au/*'
-#          - 'arn:aws:s3:::thepoint-backup/*'
-#          - 'arn:aws:s3:::thepoint-logs/*'
-#- name: IAM policy SES
-#  iam_policy:
-#    state: present
-#    iam_type: role
-#    iam_name: "{{ django_role.iam_role.role_name }}"
-#    policy_name: Django_SES
-#    policy_json:
-#      Statement:
-#        - Action:
-#          - 'ses:SendEmail'
-#          - 'ses:SendRawEmail'
-#          Effect: Allow
-#          Resource:
-#          - '*'
-#      Version: '2012-10-17'
+- name: IAM policy EC2
+  iam_policy:
+    state: present
+    iam_type: role
+    iam_name: "{{ django_role.iam_role.role_name }}"
+    policy_name: Django_EC2
+    policy_json:
+      Version: '2012-10-17'
+      Statement:
+        - Action:
+          - 'ec2:Describe*'
+          - 'ec2:CreateTags'
+          Effect: Allow
+          Resource:
+          - '*'
+- name: IAM policy Logs
+  iam_policy:
+    state: present
+    iam_type: role
+    iam_name: "{{ django_role.iam_role.role_name }}"
+    policy_name: Django_Logs
+    policy_json:
+      Version: '2012-10-17'
+      Statement:
+        - Action:
+          - 'logs:*'
+          Effect: Allow
+          Resource:
+          - 'arn:aws:logs:*:*:*'
+- name: IAM policy S3
+  iam_policy:
+    state: present
+    iam_type: role
+    iam_name: "{{ django_role.iam_role.role_name }}"
+    policy_name: Django_S3
+    policy_json:
+      Statement:
+        - Action:
+          - 's3:ListBucket'
+          - 's3:GetBucketLocation'
+          - 's3:ListBucketMultipartUploads'
+          - 's3:ListBucketVersions'
+          Effect: Allow
+          Resource:
+          - 'arn:aws:s3:::static-test.thepoint.org.au'
+          - 'arn:aws:s3:::media-test.thepoint.org.au'
+          - 'arn:aws:s3:::static.thepoint.org.au'
+          - 'arn:aws:s3:::media.thepoint.org.au'
+          - 'arn:aws:s3:::thepoint-backup'
+          - 'arn:aws:s3:::thepoint-logs'
+        - Action:
+          - 's3:*Object*'
+          - 's3:ListMultipartUploadParts'
+          - 's3:AbortMultipartUpload'
+          Effect: Allow
+          Resource:
+          - 'arn:aws:s3:::static-test.thepoint.org.au/*'
+          - 'arn:aws:s3:::media-test.thepoint.org.au/*'
+          - 'arn:aws:s3:::static.thepoint.org.au/*'
+          - 'arn:aws:s3:::media.thepoint.org.au/*'
+          - 'arn:aws:s3:::thepoint-backup/*'
+          - 'arn:aws:s3:::thepoint-logs/*'
+- name: IAM policy SES
+  iam_policy:
+    state: present
+    iam_type: role
+    iam_name: "{{ django_role.iam_role.role_name }}"
+    policy_name: Django_SES
+    policy_json:
+      Statement:
+        - Action:
+          - 'ses:SendEmail'
+          - 'ses:SendRawEmail'
+          Effect: Allow
+          Resource:
+          - '*'
+      Version: '2012-10-17'
 
 
 
