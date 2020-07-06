@@ -1,29 +1,4 @@
-- name: "django_collectstatic {{ user }}"
-  command: thepoint-manage collectstatic --noinput
-  args:
-    chdir: "/srv/django/{{ user }}"
-  become_user: "{{ user }}"
-  environment:
-    PATH: "/srv/django/{{ user }}/venv/bin:{{ ansible_env.PATH }}"
-    DB_ENGINE: "{{ db_engine }}"
-    DB_NAME: "{{ db_name }}"
-    SECRET_KEY: "{{ secret_key }}"
-    STATICFILES_BUCKET: "{{ static_bucket | default('') }}"
-- name: "django_migrate {{ user }}"
-  command: thepoint-manage migrate --noinput
-  args:
-    chdir: "/srv/django/{{ user }}"
-  become_user: "{{ user }}"
-  environment:
-    PATH: "/srv/django/{{ user }}/venv/bin:{{ ansible_env.PATH }}"
-    DB_ENGINE: "{{ db_engine }}"
-    DB_NAME: "{{ db_name }}"
-    SECRET_KEY: "{{ secret_key }}"
-- name: "gunicorn_reload {{ user }}"
-  systemd:
-    name: "{{ user }}.service"
-    state: reloaded
-- name: "update_crontab {{ user }}"
-  when: has_crontab
-  shell: (echo "PATH=/srv/django/{{ user }}/venv/bin:/usr/bin:/bin" ; cat "/srv/django/{{ user }}/.environment" "/srv/django/{{ user }}/crontab") | /usr/bin/crontab -
-  become_user: "{{ user }}"
+- name: "Django {{ shortname }} collectstatic"
+  command: docker exec "django_{{ shortname }}" thepoint-manage collectstatic --no-input
+- name: "Django {{ shortname }} migrate"
+  command: docker exec "django_{{ shortname }}" thepoint-manage migrate --no-input

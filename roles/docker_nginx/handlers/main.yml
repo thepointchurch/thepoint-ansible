@@ -1,0 +1,2 @@
+- name: nginx_reload
+  command: docker kill -s HUP nginx

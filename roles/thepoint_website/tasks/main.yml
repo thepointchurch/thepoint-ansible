@@ -1,124 +1,12 @@
-- name: Django user
-  postgresql_user:
-    name: "{{ user }}"
-    state: present
-  become_user: postgres
-- name: Django db
-  postgresql_db:
-    name: "{{ user }}"
-    state: present
-    owner: "{{ user }}"
-  become_user: postgres
-  notify: "django_migrate {{ user }}"
-- name: Django user
-  user:
-    name: "{{ user }}"
-    state: present
-    home: "/srv/django/{{ user }}"
-    shell: /bin/bash
-- name: Configure bash profile
-  copy:
-    src: bash_profile
-    dest: "/srv/django/{{ user }}/.bash_profile"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0640
-- name: Configure mail alias
-  lineinfile:
-    state: present
-    dest: /etc/aliases
-    line: "{{ user }}: root"
-    regexp: "^{{ user }}: "
-  notify: newaliases
-- name: Configure environment
-  template:
-    src: environment
-    dest: "/srv/django/{{ user }}/.environment"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0640
-  notify:
-    - "django_collectstatic {{ user }}"
-    - "django_migrate {{ user }}"
-    - "gunicorn_reload {{ user }}"
-    - "update_crontab {{ user }}"
-- name: Configure venv requirements
-  copy:
-    src: "{{ requirements_file }}"
-    dest: "/srv/django/{{ user }}/requirements.txt"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0640
-  notify:
-    - "django_collectstatic {{ user }}"
-    - "django_migrate {{ user }}"
-    - "gunicorn_reload {{ user }}"
-    - "update_crontab {{ user }}"
-- name: Install Python requirements
-  apt:
-    pkg:
-      - python3-venv
-      - python3-pip
-      - libpq-dev
-    state: present
-    force: yes
-- name: Install virtualenv
-  pip:
-    state: latest
-    virtualenv: "/srv/django/{{ user }}/venv"
-    virtualenv_command: pyvenv
-    requirements: "/srv/django/{{ user }}/requirements.txt"
-  become_user: "{{ user }}"
-  notify:
-    - "django_collectstatic {{ user }}"
-    - "django_migrate {{ user }}"
-    - "gunicorn_reload {{ user }}"
-- name: Gunicorn configuration
-  template:
-    src: gunicorn
-    dest: "/srv/django/{{ user }}/.gunicorn"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0644
-  notify:
-    - "gunicorn_reload {{ user }}"
-- name: SystemD socket
-  template:
-    src: thepoint.socket
-    dest: "/etc/systemd/system/{{ user }}.socket"
-    owner: root
-    group: root
-    mode: 0644
-- name: SystemD service
-  template:
-    src: thepoint.service
-    dest: "/etc/systemd/system/{{ user }}.service"
-    owner: root
-    group: root
-    mode: 0644
-- name: Enable SystemD socket
-  systemd:
-    name: "{{ user }}.socket"
-    state: started
-    enabled: yes
-    daemon_reload: yes
-- name: NGINX virtual host
+- name: NGINX config
   template:
     src: nginx.conf
-    dest: "/etc/nginx/sites-enabled/{{ user }}"
+    dest: "/etc/nginx/{{ shortname }}.conf"
     owner: root
     group: root
     mode: 0644
-  notify: restart_nginx
-- name: crontab
-  when: has_crontab
-  copy:
-    src: crontab
-    dest: "/srv/django/{{ user }}/crontab"
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: 0640
-  notify: "update_crontab {{ user }}"
+  notify:
+    - nginx_reload
 - name: Cloudflare DNS
   when:
     - cloudflare_email is defined
@@ -135,8 +23,146 @@
     account_api_token: "{{ cloudflare_token }}"
   with_items: "{{ vhost.split(' ') }}"
 - name: LetsEncrypt Certificate
-  when:
-    - ssl
-  command: "/usr/local/bin/certbot certonly -n --agree-tos --dns-cloudflare --dns-cloudflare-credentials /root/cloudflare.ini --dns-cloudflare-propagation-seconds 20 {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
-  args:
-    creates: "/etc/letsencrypt/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
+  command:
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
+    creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
+- name: 'Secret: DB password'
+  copy:
+    content: "{{ db_password }}"
+    dest: "/etc/secrets/db_password_{{ shortname }}.txt"
+    owner: root
+    group: root
+    mode: 0644
+- name: Secret Key
+  copy:
+    content: "{{ secret_key }}"
+    dest: "/etc/secrets/secret_key_{{ shortname }}.txt"
+    owner: root
+    group: root
+    mode: 0644
+- name: Docker Network
+  docker_network:
+    name: "frontend_{{ shortname }}"
+- name: The Point Compose
+  docker_compose:
+    project_name: "{{ description }}"
+    state: present
+    pull: yes
+    definition:
+      version: '3.1'
+      services:
+        db:
+          image: postgres:12-alpine
+          container_name: "db_{{ shortname }}"
+          environment:
+            POSTGRES_USER: thepoint
+            POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+          command: ["postgres", "-c", "timezone=Australia/Brisbane", "-c", "log_timezone=Australia/Brisbane"]
+          restart: unless-stopped
+          secrets:
+            - db_password
+          volumes:
+            - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
+            - "/data/postgres_{{ shortname }}:/var/lib/postgresql/data"
+          logging:
+            driver: awslogs
+            options:
+              awslogs-group: "{{ log_group }}"
+              awslogs-stream: postgres
+          cap_drop:
+            - ALL
+          cap_add:
+            - CHOWN
+            - DAC_READ_SEARCH
+            - FOWNER
+            - SETGID
+            - SETUID
+          read_only: true
+          tmpfs:
+            - /tmp
+            - /run/postgresql
+          networks:
+            - backend
+        django:
+          image: "{{ docker_image }}"
+          container_name: "django_{{ shortname }}"
+          environment:
+            SECRET_KEY_FILE: /run/secrets/secret_key
+            GUNICORN_CMD_ARGS: "--workers={{ workers }} --threads={{ threads }}"
+            DB_ENGINE: "{{ db_engine }}"
+            DB_NAME: thepoint
+            DB_USER: thepoint
+            DB_PASSWORD_FILE: /run/secrets/db_password
+            DB_HOST: db
+            DB_PORT: 5432
+            DEBUG: "{% if debug %}'True'{% endif %}"
+            BACKUP_BUCKET: "{{ backup_bucket }}"
+            MEDIAFILES_BUCKET: "{{ media_bucket }}"
+            STATICFILES_BUCKET: "{{ static_bucket }}"
+            EMAIL_BACKEND: "{{ email_backend }}"
+            VHOST: "{{ vhost }} localhost"
+          restart: unless-stopped
+          secrets:
+            - db_password
+            - secret_key
+          volumes:
+            - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
+          logging:
+            driver: awslogs
+            options:
+              awslogs-group: "{{ log_group }}"
+              awslogs-stream: django
+          cap_drop:
+            - ALL
+          depends_on:
+            - db
+          networks:
+            backend:
+            frontend:
+              aliases:
+                - "django_{{ shortname }}"
+      networks:
+        backend:
+        frontend:
+          external:
+            name: "frontend_{{ shortname }}"
+      secrets:
+        db_password:
+          file: "/etc/secrets/db_password_{{ shortname }}.txt"
+        secret_key:
+          file: "/etc/secrets/secret_key_{{ shortname }}.txt"
+  notify:
+    - "Django {{ shortname }} collectstatic"
+    - "Django {{ shortname }} migrate"
+- name: setvar
+  set_fact:
+    frontend_nets: "{{ frontend_nets + [ 'frontend_' + shortname ] }}"
+- name: Crontab
+  lineinfile:
+    state: "{% if cron %}present{% else %}absent{% endif %}"
+    dest: /etc/docker.crontab
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+  loop:
+    - line: "0 22 * * * docker exec django_{{ shortname }} thepoint-backup"
+      regexp: " docker exec django_{{ shortname }} thepoint-backup"
+    - line: "0 14 * * * docker exec django_{{ shortname }} thepoint-sendrosteremails"
+      regexp: " docker exec django_{{ shortname }} thepoint-sendrosteremails"
+  notify:
+    - runner_restart
+- name: Crontab
+  lineinfile:
+    state: present
+    dest: /etc/docker.crontab
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+    line: "0 3 * * * docker exec django_{{ shortname }} thepoint-manage clearsessions"
+    regexp: " docker exec django_{{ shortname }} thepoint-manage clearsessions"
+  notify:
+    - runner_restart

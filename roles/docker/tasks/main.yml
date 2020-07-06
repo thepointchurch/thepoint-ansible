@@ -1,0 +1,91 @@
+- name: Install Docker
+  apt:
+    pkg:
+      - docker.io
+      - docker-compose
+      - python3-docker
+    state: present
+    force: yes
+- name: NGINX config directory
+  file:
+    state: directory
+    dest: /etc/nginx
+    owner: root
+    group: root
+    mode: 0755
+- name: Create LetsEncrypt directory
+  file:
+    state: directory
+    dest: /data/acme
+    owner: root
+    group: root
+    mode: 0755
+- name: LetsEncrypt config
+  copy:
+    content: |
+      email = admin@thepoint.org.au
+      authenticator = dns-cloudflare
+      dns-cloudflare-credentials = /etc/letsencrypt/cloudflare.ini
+      dns-cloudflare-propagation-seconds = 20
+      server = https://acme-v02.api.letsencrypt.org/directory
+    dest: /data/acme/cli.ini
+    owner: root
+    group: root
+    mode: 0600
+- name: LetsEncrypt Cloudflare config
+  copy:
+    content: |
+      dns_cloudflare_email = {{ cloudflare_email }}
+      dns_cloudflare_api_key = {{ cloudflare_token }}
+    dest: "/data/acme/cloudflare.ini"
+    owner: root
+    group: root
+    mode: 0600
+- name: Create Docker secrets directory
+  file:
+    state: directory
+    dest: /etc/secrets
+    owner: root
+    group: root
+    mode: 0750
+- name: GitHub Packages
+  docker_login:
+    state: present
+    registry: docker.pkg.github.com
+    username: "{{ github_user }}"
+    password: "{{ github_token }}"
+- name: Docker Prune
+  cron:
+    name: docker_prune
+    job: /usr/bin/docker system prune -f >/dev/null
+    hour: "19"
+    minute: "0"
+- name: Certbot Container
+  docker_image:
+    name: certbot/dns-cloudflare
+    source: pull
+- name: LetsEncrypt Register
+  command:
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare register -n --agree-tos"
+    creates: "/data/acme/accounts/acme-v02.api.letsencrypt.org/directory/*/private_key.json"
+- name: LetsEncrypt Deploy Hook
+  copy:
+    content: |
+      #!/bin/sh
+      /usr/bin/docker restart nginx
+    dest: "/data/acme/renewal-hooks/deploy/nginx"
+    owner: root
+    group: root
+    mode: 0755
+- name: LetsEncrypt crontab
+  lineinfile:
+    state: present
+    dest: /etc/docker.crontab
+    create: yes
+    owner: root
+    group: root
+    mode: 0644
+    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare renew"
+    regexp: ' docker run .* certbot.* renew'
+  notify:
+    - runner_restart

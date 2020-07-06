@@ -1,4 +1,4 @@
 aws_region: us-west-2
 aws_instance_type: t2.micro
-aws_image: ami-dac6b5a2
+aws_image: ami-0e0e5738da01fdef5
 volume_size: 4

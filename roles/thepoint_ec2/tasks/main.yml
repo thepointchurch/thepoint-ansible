@@ -108,7 +108,6 @@
           - 'arn:aws:s3:::static.thepoint.org.au'
           - 'arn:aws:s3:::media.thepoint.org.au'
           - 'arn:aws:s3:::thepoint-backup'
-          - 'arn:aws:s3:::thepoint-logs'
         - Action:
           - 's3:*Object*'
           - 's3:ListMultipartUploadParts'
@@ -120,7 +119,6 @@
           - 'arn:aws:s3:::static.thepoint.org.au/*'
           - 'arn:aws:s3:::media.thepoint.org.au/*'
           - 'arn:aws:s3:::thepoint-backup/*'
-          - 'arn:aws:s3:::thepoint-logs/*'
 - name: IAM policy SES
   iam_policy:
     state: present
@@ -136,6 +134,13 @@
           Resource:
           - '*'
       Version: '2012-10-17'
+- name: CW Group Test
+  cloudwatchlogs_log_group:
+    log_group_name: "{{ cw_group_test }}"
+    retention: 7
+- name: CW Group Production
+  cloudwatchlogs_log_group:
+    log_group_name: "{{ cw_group_prod }}"
 
 
 
@@ -174,9 +179,6 @@
       Role: "{{ instance_role }}"
   register: ec2_instance
 
-- name: debug 1
-  debug:
-    msg: "{{ ec2_instance }}"
 - name: Cloudflare DNS
   cloudflare_dns:
     state: present
@@ -185,6 +187,7 @@
     record: "{{ hostname.split('.')[0] }}"
     value: "{{ ec2_instance.tagged_instances[0].public_ip }}"
     proxied: no
+    solo: yes
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
 #- name: Cloudflare DNS

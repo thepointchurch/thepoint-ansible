@@ -5,12 +5,6 @@
 
 # Utility buckets
 
-    - thepoint-logs:
-      name: s3_storage
-      bucket: thepoint-logs
-      bucket_tags:
-        type: logs
-        website: thepoint
     - thepoint-backup:
       name: s3_storage
       bucket: thepoint-backup
@@ -53,7 +47,7 @@
 
 # Production/test VM
 
-    - thepoint_website:
+    - thepoint_docker:
       name: thepoint_ec2
-      hostname: silas.thepoint.org.au
-      instance_role: thepoint_website
+      hostname: rahab.thepoint.org.au
+      instance_role: thepoint_docker

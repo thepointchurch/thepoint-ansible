@@ -1,3 +1,0 @@
-log_bucket: thepoint-logs
-filesystems:
-  xvdb: /srv/django

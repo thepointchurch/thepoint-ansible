@@ -1,4 +1,4 @@
-- hosts: tag_Role_thepoint_website
+- hosts: tag_Role_thepoint_docker
   become: yes
   pre_tasks:
     - name: Gathering EC2 Facts
@@ -6,37 +6,43 @@
   roles:
     - aws
     - common
-    - django_db
-    - django_nginx
+    - docker
 
 # Test website
 
-    - thepoint_test:
+    - test:
       name: thepoint_website
-      user: thepoint_test
+      shortname: test
       description: The Point Test
-      requirements_file: requirements_test.txt
       vhost: test.thepoint.org.au
       debug: true
+      cron: false
+      workers: 1
+      threads: 2
       secret_key: "{{ test_secret_key }}"
       static_bucket: static-test.thepoint.org.au
       media_bucket: media-test.thepoint.org.au
-      syslog_tag: thepoint_test
-      ssl: true
+      backup_bucket: thepoint-backup
+      docker_image: docker.pkg.github.com/thepointchurch/thepoint/thepoint:testing
+      email_backend: django.core.mail.backends.console.EmailBackend
+      log_group: "{{ cw_group_test }}"
 
 # Production website
 
-    - thepoint_prod:
+    - prod:
       name: thepoint_website
-      user: thepoint
+      shortname: prod
       description: The Point
-      requirements_file: requirements.txt
       vhost: thepoint.org.au www.thepoint.org.au
       secret_key: "{{ prod_secret_key }}"
       static_bucket: static.thepoint.org.au
       media_bucket: media.thepoint.org.au
       backup_bucket: thepoint-backup
-      email_backend: django_sendmail_backend.backends.EmailBackend
-      syslog_tag: thepoint_prod
-      has_crontab: true
-      ssl: true
+      log_group: "{{ cw_group_prod }}"
+
+    - nginx:
+      name: docker_nginx
+      log_group: "{{ cw_group_prod }}"
+    - runner:
+      name: docker_runner
+      log_group: "{{ cw_group_prod }}"

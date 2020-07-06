@@ -1,0 +1,2 @@
+- name: runner_restart
+  command: docker restart runner

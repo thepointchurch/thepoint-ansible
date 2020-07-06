@@ -1,8 +1,11 @@
-vhost: "{{ user }}.{{ ansible_domain }}"
+vhost: "www.{{ ansible_domain }} {{ ansible_domain }}"
 workers: 3
 threads: 12
 db_engine: django.db.backends.postgresql
-db_name: "{{ user }}"
+db_password: '1234567890'
 debug: false
-has_crontab: false
-requirements_file: requirements.txt
+docker_image: docker.pkg.github.com/thepointchurch/thepoint/thepoint:latest
+email_backend: django_sendmail_backend.backends.EmailBackend
+log_group: thepoint
+frontend_nets: []
+cron: true

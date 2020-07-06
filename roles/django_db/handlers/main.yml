@@ -1,2 +1,0 @@
-- name: start_django_pg_cluster
-  command: /usr/bin/pg_ctlcluster "{{ pg_version }}" django start

@@ -3,6 +3,7 @@
     pkg:
       - awscli
       - curl
+      - xz-utils
     state: present
     force: yes
 - name: Create AWS CLI configuration directory
@@ -21,16 +22,27 @@
     state: link
     src: /etc/aws
     dest: /root/.aws
-- name: Link skel AWS CLI config
-  file:
-    state: link
-    src: /etc/aws
-    dest: /etc/skel/.aws
-- name: Install log upload script
-  when: log_bucket is defined
+- name: Install Cloudwatch Agent
+  apt:
+    deb: "https://s3.amazonaws.com/amazoncloudwatch-agent/debian/amd64/latest/amazon-cloudwatch-agent.deb"
+    state: present
+    force: yes
+- name: Cloudwatch Agent User
+  user:
+    name: cwagent
+    groups: adm
+    append: yes
+- name: Configure Cloudwatch Agent
   template:
-    src: logrotate_upload
-    dest: /etc/cron.daily/logrotate_upload
+    src: cloudwatch.json
+    dest: "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
     owner: root
-    group: adm
-    mode: 0750
+    group: root
+    mode: 0644
+  notify:
+    - restart_cloudwatch
+- name: Cloudwatch Agent
+  service:
+    name: amazon-cloudwatch-agent
+    state: started
+    enabled: true

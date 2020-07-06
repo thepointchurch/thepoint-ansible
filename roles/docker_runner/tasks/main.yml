@@ -1,0 +1,49 @@
+- name: Docker Runner crontab
+  file:
+    state: touch
+    path: /etc/docker.crontab
+    owner: root
+    group: root
+    mode: 0644
+- name: Docker Runner Configuration
+  copy:
+    content: |
+      FROM alpine:latest
+      RUN apk update && apk add --no-cache docker-cli
+      CMD ["sh", "-c", "crond -L /dev/stdout -f | awk '{ print strftime(\"[%Y-%m-%d %H:%M:%S]\"), $0 }'"]
+    dest: "/etc/Dockerfile.runner"
+    owner: root
+    group: root
+    mode: 0644
+  register: runner_config_status
+- name: Docker Runner Image
+  docker_image:
+    name: runner
+    source: build
+    force_source: "{% if runner_config_status.changed %}yes{% else %}no{% endif %}"
+    build:
+      pull: yes
+      dockerfile: /etc/Dockerfile.runner
+      path: /data
+      rm: yes
+- name: Docker Runner Container
+  docker_container:
+    name: runner
+    image: runner
+    state: started
+    restart_policy: unless-stopped
+    network_mode: none
+    volumes:
+      - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
+      - /etc/docker.crontab:/etc/crontabs/root:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    log_driver: awslogs
+    log_options:
+      awslogs-group: "{{ log_group }}"
+      awslogs-stream: runner
+    cap_drop:
+      - ALL
+    capabilities:
+      - SETGID
+      - SETUID
+    read_only: true

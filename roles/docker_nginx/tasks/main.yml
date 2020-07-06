@@ -1,0 +1,53 @@
+- name: NGINX config directory
+  file:
+    state: directory
+    dest: /etc/nginx
+    owner: root
+    group: root
+    mode: 0755
+- name: NGINX config
+  template:
+    src: nginx.conf
+    dest: "/etc/nginx.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - nginx_reload
+- name: NGINX Compose
+  docker_compose:
+    project_name: NGINX
+    state: present
+    pull: yes
+    definition:
+      version: '3.1'
+      services:
+        nginx:
+          image: nginx:alpine
+          container_name: nginx
+          restart: unless-stopped
+          ports:
+            - 443:443
+          volumes:
+            - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
+            - /etc/nginx.conf:/etc/nginx/nginx.conf:ro
+            - /etc/nginx:/etc/nginx/conf.d:ro
+            - /data/acme:/etc/nginx/acme:ro
+          logging:
+            driver: awslogs
+            options:
+              awslogs-group: "{{ log_group }}"
+              awslogs-stream: nginx
+          cap_drop:
+            - ALL
+          cap_add:
+            - CHOWN
+            - NET_BIND_SERVICE
+            - SETGID
+            - SETUID
+          read_only: true
+          tmpfs:
+            - /var/cache/nginx
+            - /docker-entrypoint.d
+          networks: "{{ frontend_nets }}"
+      networks: "{{ frontend_nets | process_frontend_nets }}"

@@ -1,2 +1,0 @@
-0 22 * * * ${HOME}/venv/bin/thepoint-backup
-0 14 * * * ${HOME}/venv/bin/thepoint-sendrosteremails
