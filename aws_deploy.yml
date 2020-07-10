@@ -39,6 +39,7 @@
       media_bucket: media.thepoint.org.au
       backup_bucket: thepoint-backup
       log_group: "{{ cw_group_prod }}"
+      email_backend: django_amazon_ses.EmailBackend
 
     - nginx:
       name: docker_nginx

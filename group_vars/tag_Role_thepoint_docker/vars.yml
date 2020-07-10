@@ -2,3 +2,4 @@ filesystems:
   xvdb: /data
 cw_group_test: thepoint-test
 cw_group_prod: thepoint-web
+aws_region: us-west-2

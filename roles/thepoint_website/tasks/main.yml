@@ -100,6 +100,7 @@
             MEDIAFILES_BUCKET: "{{ media_bucket }}"
             STATICFILES_BUCKET: "{{ static_bucket }}"
             EMAIL_BACKEND: "{{ email_backend }}"
+            AWS_DEFAULT_REGION: "{{ aws_region }}"
             VHOST: "{{ vhost }} localhost"
           restart: unless-stopped
           secrets:
