@@ -1,7 +1,7 @@
 - name: newaliases
-  shell: /usr/bin/newaliases
+  command: /usr/bin/newaliases
 - name: update-exim4
-  shell: /usr/sbin/update-exim4.conf
+  command: /usr/sbin/update-exim4.conf
 - name: reload_exim
   service:
     name: exim4

@@ -1,3 +1,34 @@
+- name: Docker Sysctl
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/docker.conf
+    state: present
+  loop: "{{ sysctl_vars|dict2items }}"
+  vars:
+    sysctl_vars:
+      vm.overcommit_memory: '1'
+- name: Disable Transparent Huge Pages (THP)
+  copy:
+    content: |
+      [Unit]
+      Description=Disable Transparent Huge Pages (THP)
+      DefaultDependencies=no
+      After=sysinit.target local-fs.target
+      Before=docker.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh -c 'echo madvise | tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null'
+
+      [Install]
+      WantedBy=basic.target
+    dest: /etc/systemd/system/disable-transparent-huge-pages.service
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - transparent_hugepage
 - name: Install Docker
   apt:
     pkg:
@@ -49,7 +80,7 @@
     group: root
     mode: 0750
 - name: GitHub Packages
-  docker_login:
+  community.general.docker_login:
     state: present
     registry: docker.pkg.github.com
     username: "{{ github_user }}"
@@ -61,7 +92,7 @@
     hour: "19"
     minute: "0"
 - name: Certbot Container
-  docker_image:
+  community.general.docker_image:
     name: certbot/dns-cloudflare
     source: pull
 - name: LetsEncrypt Register

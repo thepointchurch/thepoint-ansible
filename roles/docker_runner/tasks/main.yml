@@ -1,7 +1,8 @@
 - name: Docker Runner crontab
-  file:
-    state: touch
-    path: /etc/docker.crontab
+  copy:
+    dest: /etc/docker.crontab
+    content: ""
+    force: no
     owner: root
     group: root
     mode: 0644
@@ -17,7 +18,7 @@
     mode: 0644
   register: runner_config_status
 - name: Docker Runner Image
-  docker_image:
+  community.general.docker_image:
     name: runner
     source: build
     force_source: "{% if runner_config_status.changed %}yes{% else %}no{% endif %}"
@@ -27,10 +28,11 @@
       path: /data
       rm: yes
 - name: Docker Runner Container
-  docker_container:
+  community.general.docker_container:
     name: runner
     image: runner
     state: started
+    container_default_behavior: no_defaults
     restart_policy: unless-stopped
     network_mode: none
     volumes:

@@ -58,6 +58,7 @@
   lineinfile:
     state: present
     dest: /etc/aliases
+    mode: 0644
     line: 'root: {{ root_mail }}'
     regexp: '^root: '
   notify: newaliases
@@ -66,6 +67,7 @@
   lineinfile:
     state: present
     dest: /etc/email-addresses
+    mode: 0644
     line: 'root: {{ root_from }}'
     regexp: '^root: '
 - name: Configure Exim

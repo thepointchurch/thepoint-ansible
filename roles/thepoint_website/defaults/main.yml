@@ -5,7 +5,13 @@ db_engine: django.db.backends.postgresql
 db_password: '1234567890'
 debug: false
 docker_image: docker.pkg.github.com/thepointchurch/thepoint/thepoint:latest
+backup_bucket: ''
 email_backend: django_sendmail_backend.backends.EmailBackend
+cache_backend: django.core.cache.backends.dummy.DummyCache
+cache_location: ''
+cache_timeout: ''
+cache_options: {}
+cache_ops: false
 log_group: thepoint
 frontend_nets: []
 cron: true

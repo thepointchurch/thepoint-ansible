@@ -15,7 +15,7 @@
   notify:
     - nginx_reload
 - name: NGINX Compose
-  docker_compose:
+  community.general.docker_compose:
     project_name: NGINX
     state: present
     pull: yes

@@ -1,5 +1,5 @@
 - name: Web Server EC2 group
-  ec2_group:
+  amazon.aws.ec2_group:
     state: present
     name: Web Server
     tags:
@@ -21,12 +21,12 @@
         cidr_ipv6: ::/0
   register: server_group
 - name: SSH key
-  ec2_key:
+  amazon.aws.ec2_key:
     state: present
     name: "{{ ssh_id }}"
     key_material: "{{ ssh_key }}"
 - name: VPC
-  ec2_vpc_net:
+  amazon.aws.ec2_vpc_net:
     state: present
     name: Default
     cidr_block: "{{ net_ipv4 }}"
@@ -35,7 +35,7 @@
     dns_support: yes
   register: vpc_details
 - name: VPC subnet
-  ec2_vpc_subnet:
+  amazon.aws.ec2_vpc_subnet:
     state: present
     vpc_id: "{{ vpc_details.vpc.id }}"
     map_public: yes
@@ -47,9 +47,10 @@
 
 
 - name: IAM role EC2
-  iam_role:
+  community.aws.iam_role:
     state: present
-    assume_role_policy_document: 
+    purge_policies: true
+    assume_role_policy_document:
       Version: '2012-10-17'
       Statement:
         - Effect: Allow
@@ -60,7 +61,7 @@
     name: DjangoSite
   register: django_role
 - name: IAM policy EC2
-  iam_policy:
+  community.aws.iam_policy:
     state: present
     iam_type: role
     iam_name: "{{ django_role.iam_role.role_name }}"
@@ -75,7 +76,7 @@
           Resource:
           - '*'
 - name: IAM policy Logs
-  iam_policy:
+  community.aws.iam_policy:
     state: present
     iam_type: role
     iam_name: "{{ django_role.iam_role.role_name }}"
@@ -89,7 +90,7 @@
           Resource:
           - 'arn:aws:logs:*:*:*'
 - name: IAM policy S3
-  iam_policy:
+  community.aws.iam_policy:
     state: present
     iam_type: role
     iam_name: "{{ django_role.iam_role.role_name }}"
@@ -120,7 +121,7 @@
           - 'arn:aws:s3:::media.thepoint.org.au/*'
           - 'arn:aws:s3:::thepoint-backup/*'
 - name: IAM policy SES
-  iam_policy:
+  community.aws.iam_policy:
     state: present
     iam_type: role
     iam_name: "{{ django_role.iam_role.role_name }}"
@@ -135,19 +136,15 @@
           - '*'
       Version: '2012-10-17'
 - name: CW Group Test
-  cloudwatchlogs_log_group:
+  community.aws.cloudwatchlogs_log_group:
     log_group_name: "{{ cw_group_test }}"
     retention: 7
 - name: CW Group Production
-  cloudwatchlogs_log_group:
+  community.aws.cloudwatchlogs_log_group:
     log_group_name: "{{ cw_group_prod }}"
 
-
-
-
-#
 - name: Provision "{{ hostname }}"
-  ec2:
+  amazon.aws.ec2:
     key_name: "{{ ssh_id }}"
     group: "{{ server_group.group_name }}"
     instance_type: "{{ aws_instance_type }}"
@@ -162,7 +159,6 @@
     termination_protection: yes
     user_data: |
       #cloud-config
-      
       apt_upgrade: true
       hostname: "{{ hostname.split('.')[0] }}"
       fqdn: "{{ hostname }}"
@@ -180,7 +176,7 @@
   register: ec2_instance
 
 - name: Cloudflare DNS
-  cloudflare_dns:
+  community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
     type: A
@@ -191,7 +187,7 @@
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
 #- name: Cloudflare DNS
-#  cloudflare_dns:
+#  community.general.cloudflare_dns:
 #    state: present
 #    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
 #    type: AAAA

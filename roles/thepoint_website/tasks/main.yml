@@ -12,7 +12,7 @@
     - cloudflare_email is defined
     - cloudflare_token is defined
     - "cloudflare_email.split('@')[1] in item"
-  cloudflare_dns:
+  community.general.cloudflare_dns:
     state: present
     zone: "{{ cloudflare_email.split('@')[1] }}"
     type: CNAME
@@ -40,11 +40,62 @@
     owner: root
     group: root
     mode: 0644
-- name: Docker Network
-  docker_network:
+- name: Docker Frontend Network
+  community.general.docker_network:
     name: "frontend_{{ shortname }}"
+- name: Docker Backend Network
+  community.general.docker_network:
+    name: "backend_{{ shortname }}"
+- name: Redis Configuration
+  copy:
+    content: |
+      appendonly yes
+      auto-aof-rewrite-percentage 100
+      auto-aof-rewrite-min-size 32mb
+    dest: "/etc/redis.conf"
+    owner: root
+    group: root
+    mode: 0644
+- name: Redis Compose
+  when: cache_backend == "django_redis.cache.RedisCache"
+  community.general.docker_compose:
+    project_name: "redis_{{ shortname }}"
+    state: present
+    pull: yes
+    definition:
+      version: '3.1'
+      services:
+        cache:
+          image: redis:alpine
+          container_name: "cache_{{ shortname }}"
+          command: ["redis-server", "/etc/redis.conf"]
+          restart: unless-stopped
+          volumes:
+            - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
+            - "/etc/redis.conf:/etc/redis.conf:ro"
+            - "/data/redis_{{ shortname }}:/data"
+          logging:
+            driver: awslogs
+            options:
+              awslogs-group: "{{ log_group }}"
+              awslogs-stream: redis
+          cap_drop:
+            - ALL
+          cap_add:
+            - CHOWN
+            - SETGID
+            - SETUID
+          sysctls:
+            net.core.somaxconn: 512
+          read_only: true
+          networks:
+            - backend
+      networks:
+        backend:
+          external:
+            name: "backend_{{ shortname }}"
 - name: The Point Compose
-  docker_compose:
+  community.general.docker_compose:
     project_name: "{{ description }}"
     state: present
     pull: yes
@@ -96,7 +147,11 @@
             DB_HOST: db
             DB_PORT: 5432
             DEBUG: "{% if debug %}'True'{% endif %}"
-            BACKUP_BUCKET: "{{ backup_bucket }}"
+            CACHE_BACKEND: "{{ cache_backend }}"
+            CACHE_LOCATION: "{{ cache_location }}"
+            CACHE_TIMEOUT: "{{ cache_timeout }}"
+            CACHE_OPTIONS: "{{ cache_options|to_json }}"
+            CACHEOPS_ENABLED: "{% if cache_ops %}'True'{% endif %}"
             MEDIAFILES_BUCKET: "{{ media_bucket }}"
             STATICFILES_BUCKET: "{{ static_bucket }}"
             EMAIL_BACKEND: "{{ email_backend }}"
@@ -115,6 +170,8 @@
               awslogs-stream: django
           cap_drop:
             - ALL
+          cap_add:
+            - SYS_NICE
           depends_on:
             - db
           networks:
@@ -124,6 +181,8 @@
                 - "django_{{ shortname }}"
       networks:
         backend:
+          external:
+            name: "backend_{{ shortname }}"
         frontend:
           external:
             name: "frontend_{{ shortname }}"
@@ -149,8 +208,6 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
   loop:
-    - line: "0 22 * * * docker exec django_{{ shortname }} thepoint-backup"
-      regexp: " docker exec django_{{ shortname }} thepoint-backup"
     - line: "0 14 * * * docker exec django_{{ shortname }} thepoint-sendrosteremails"
       regexp: " docker exec django_{{ shortname }} thepoint-sendrosteremails"
   notify:
@@ -163,7 +220,24 @@
     owner: root
     group: root
     mode: 0644
-    line: "0 3 * * * docker exec django_{{ shortname }} thepoint-manage clearsessions"
-    regexp: " docker exec django_{{ shortname }} thepoint-manage clearsessions"
+    line: "0 3 * * * docker exec django_{{ shortname }} thepoint clearsessions"
+    regexp: " docker exec django_{{ shortname }} thepoint clearsessions"
   notify:
     - runner_restart
+- name: Install backup scripts
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - thepoint-backup.sh
+    - thepoint-restore.sh
+- name: Backup
+  when: backup_bucket != ""
+  cron:
+    name: "{{ shortname }}_backup"
+    job: /usr/local/bin/thepoint-backup.sh "db_{{ shortname }}" "{{ media_bucket }}" "{{ backup_bucket }}"
+    hour: "22"
+    minute: "0"

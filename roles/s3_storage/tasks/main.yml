@@ -1,13 +1,13 @@
 - name: S3 bucket "{{ bucket }}"
-  s3_bucket:
+  amazon.aws.s3_bucket:
     state: present
     name: "{{ bucket }}"
-    policy: '{% if public or website %}{"Version": "2008-10-17", "Statement": [{"Sid": "", "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::{{ bucket }}/*"}]}{% else %}null{% endif %}'
+    policy: '{% if public or website %}{"Version": "2008-10-17", "Statement": [{"Sid": "", "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::{{ bucket }}/*"}]}{% else %}null{% endif %}'  # noqa 204
     versioning: "{{ versioning }}"
     tags: "{{ bucket_tags }}"
 - name: S3 CORS "{{ bucket }}"
   when: "'.' in bucket"
-  aws_s3_cors:
+  community.aws.aws_s3_cors:
     state: present
     name: "{{ bucket }}"
     rules:
@@ -20,12 +20,12 @@
         max_age_seconds: 3000
 - name: S3 website "{{ bucket }}"
   when: website
-  s3_website:
+  community.aws.s3_website:
     state: present
     name: "{{ bucket }}"
 - name: Cloudflare "{{ bucket }}"
   when: "'.' in bucket"
-  cloudflare_dns:
+  community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(bucket.split('.')[1:]) }}"
     type: CNAME

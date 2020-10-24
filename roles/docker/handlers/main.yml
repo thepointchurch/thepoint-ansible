@@ -1,0 +1,5 @@
+- name: transparent_hugepage
+  systemd:
+    name: disable-transparent-huge-pages
+    state: started
+    daemon_reload: true

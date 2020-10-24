@@ -28,6 +28,7 @@
       bucket_tags:
         type: website
         website: thepoint
+      versioning: true
 
 # Test buckets
 
