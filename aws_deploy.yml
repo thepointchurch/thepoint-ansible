@@ -34,11 +34,8 @@
       description: The Point
       vhost: thepoint.org.au www.thepoint.org.au
       secret_key: "{{ prod_secret_key }}"
-      cache_backend: django_redis.cache.RedisCache
-      cache_location: redis://cache:6379
+      cache_url: rediscache://cache:6379?client_class=django_redis.client.DefaultClient
       cache_timeout: 21600
-      cache_options:
-        CLIENT_CLASS: django_redis.client.DefaultClient
       cache_ops: true
       static_bucket: static.thepoint.org.au
       media_bucket: media.thepoint.org.au

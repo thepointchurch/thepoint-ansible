@@ -26,10 +26,17 @@
   command:
     cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
     creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
-- name: 'Secret: DB password'
+- name: 'Secret: DB Password'
   copy:
     content: "{{ db_password }}"
     dest: "/etc/secrets/db_password_{{ shortname }}.txt"
+    owner: root
+    group: root
+    mode: 0644
+- name: 'Secret: DB URL'
+  copy:
+    content: "psql://thepoint:{{ db_password }}@db:5432/thepoint"
+    dest: "/etc/secrets/db_url_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
@@ -57,7 +64,7 @@
     group: root
     mode: 0644
 - name: Redis Compose
-  when: cache_backend == "django_redis.cache.RedisCache"
+  when: cache_url is match("rediscache:")
   community.general.docker_compose:
     project_name: "redis_{{ shortname }}"
     state: present
@@ -140,17 +147,10 @@
           environment:
             SECRET_KEY_FILE: /run/secrets/secret_key
             GUNICORN_CMD_ARGS: "--workers={{ workers }} --threads={{ threads }}"
-            DB_ENGINE: "{{ db_engine }}"
-            DB_NAME: thepoint
-            DB_USER: thepoint
-            DB_PASSWORD_FILE: /run/secrets/db_password
-            DB_HOST: db
-            DB_PORT: 5432
+            DATABASE_URL_FILE: /run/secrets/db_url
             DEBUG: "{% if debug %}'True'{% endif %}"
-            CACHE_BACKEND: "{{ cache_backend }}"
-            CACHE_LOCATION: "{{ cache_location }}"
+            CACHE_URL: "{{ cache_url }}"
             CACHE_TIMEOUT: "{{ cache_timeout }}"
-            CACHE_OPTIONS: "{{ cache_options|to_json }}"
             CACHEOPS_ENABLED: "{% if cache_ops %}'True'{% endif %}"
             MEDIAFILES_BUCKET: "{{ media_bucket }}"
             STATICFILES_BUCKET: "{{ static_bucket }}"
@@ -159,6 +159,7 @@
             VHOST: "{{ vhost }} localhost"
           restart: unless-stopped
           secrets:
+            - db_url
             - db_password
             - secret_key
           volumes:
@@ -189,6 +190,8 @@
       secrets:
         db_password:
           file: "/etc/secrets/db_password_{{ shortname }}.txt"
+        db_url:
+          file: "/etc/secrets/db_url_{{ shortname }}.txt"
         secret_key:
           file: "/etc/secrets/secret_key_{{ shortname }}.txt"
   notify:
