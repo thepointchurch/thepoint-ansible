@@ -1,4 +1,4 @@
-- name: NGINX config
+- name: "NGINX config : {{ shortname }}"
   template:
     src: nginx.conf
     dest: "/etc/nginx/{{ shortname }}.conf"
@@ -7,7 +7,7 @@
     mode: 0644
   notify:
     - nginx_reload
-- name: Cloudflare DNS
+- name: "Cloudflare DNS : {{ shortname }}"
   when:
     - cloudflare_email is defined
     - cloudflare_token is defined
@@ -22,38 +22,38 @@
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
   with_items: "{{ vhost.split(' ') }}"
-- name: LetsEncrypt Certificate
+- name: "LetsEncrypt Certificate : {{ shortname }}"
   command:
     cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
     creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
-- name: 'Secret: DB Password'
+- name: "Secret: DB Password : {{ shortname }}"
   copy:
     content: "{{ db_password }}"
     dest: "/etc/secrets/db_password_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: 'Secret: DB URL'
+- name: "Secret: DB URL : {{ shortname }}"
   copy:
     content: "psql://thepoint:{{ db_password }}@db:5432/thepoint"
     dest: "/etc/secrets/db_url_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: Secret Key
+- name: "Secret Key : {{ shortname }}"
   copy:
     content: "{{ secret_key }}"
     dest: "/etc/secrets/secret_key_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: Docker Frontend Network
+- name: "Docker Frontend Network : {{ shortname }}"
   community.general.docker_network:
     name: "frontend_{{ shortname }}"
-- name: Docker Backend Network
+- name: "Docker Backend Network : {{ shortname }}"
   community.general.docker_network:
     name: "backend_{{ shortname }}"
-- name: Redis Configuration
+- name: "Redis Configuration : {{ shortname }}"
   copy:
     content: |
       appendonly yes
@@ -63,7 +63,7 @@
     owner: root
     group: root
     mode: 0644
-- name: Redis Compose
+- name: "Redis Compose : {{ shortname }}"
   when: cache_url is match("rediscache:")
   community.general.docker_compose:
     project_name: "redis_{{ shortname }}"
@@ -101,7 +101,7 @@
         backend:
           external:
             name: "backend_{{ shortname }}"
-- name: The Point Compose
+- name: "The Point Compose : {{ shortname }}"
   community.general.docker_compose:
     project_name: "{{ description }}"
     state: present
@@ -200,7 +200,7 @@
 - name: setvar
   set_fact:
     frontend_nets: "{{ frontend_nets + [ 'frontend_' + shortname ] }}"
-- name: Crontab
+- name: "Crontab : {{ shortname }}"
   lineinfile:
     state: "{% if cron %}present{% else %}absent{% endif %}"
     dest: /etc/docker.crontab
@@ -215,7 +215,7 @@
       regexp: " docker exec django_{{ shortname }} thepoint-sendrosteremails"
   notify:
     - runner_restart
-- name: Crontab
+- name: "Crontab : {{ shortname }}"
   lineinfile:
     state: present
     dest: /etc/docker.crontab
@@ -227,7 +227,7 @@
     regexp: " docker exec django_{{ shortname }} thepoint clearsessions"
   notify:
     - runner_restart
-- name: Install backup scripts
+- name: "Install backup scripts : {{ shortname }}"
   copy:
     src: "{{ item }}"
     dest: /usr/local/bin
@@ -237,7 +237,7 @@
   with_items:
     - thepoint-backup.sh
     - thepoint-restore.sh
-- name: Backup
+- name: "Backup : {{ shortname }}"
   when: backup_bucket != ""
   cron:
     name: "{{ shortname }}_backup"
