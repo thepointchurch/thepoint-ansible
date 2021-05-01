@@ -21,11 +21,15 @@ To set up a deployment environment:
 
 4. Configure Mitogen:
 
+    ```
     echo strategy_plugins = $(ls -d $(poetry env info -p)/lib/python*/site-packages/ansible_mitogen/plugins/strategy) >>ansible.cfg
+    ```
 
 5. Install Ansible collections:
 
+    ```
     ansible-galaxy collection install -r requirements.yml
+    ```
 
 ## Provisioning in AWS
 
