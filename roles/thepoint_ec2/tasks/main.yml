@@ -102,13 +102,20 @@
           - 's3:GetBucketLocation'
           - 's3:ListBucketMultipartUploads'
           - 's3:ListBucketVersions'
+          - 'kms:Decrypt'
+          - 'kms:Encrypt'
+          - 'kms:GenerateDataKey'
+          - 'kms:ReEncryptTo'
+          - 'kms:DescribeKey'
+          - 'kms:ReEncryptFrom'
           Effect: Allow
           Resource:
           - 'arn:aws:s3:::static-test.thepoint.org.au'
-          - 'arn:aws:s3:::media-test.thepoint.org.au'
           - 'arn:aws:s3:::static.thepoint.org.au'
-          - 'arn:aws:s3:::media.thepoint.org.au'
+          - 'arn:aws:s3:::thepoint-media'
+          - 'arn:aws:s3:::thepoint-media-test'
           - 'arn:aws:s3:::thepoint-backup'
+          - 'arn:aws:kms:*:*:key/alias/aws/s3'
         - Action:
           - 's3:*Object*'
           - 's3:ListMultipartUploadParts'
@@ -116,9 +123,9 @@
           Effect: Allow
           Resource:
           - 'arn:aws:s3:::static-test.thepoint.org.au/*'
-          - 'arn:aws:s3:::media-test.thepoint.org.au/*'
           - 'arn:aws:s3:::static.thepoint.org.au/*'
-          - 'arn:aws:s3:::media.thepoint.org.au/*'
+          - 'arn:aws:s3:::thepoint-media/*'
+          - 'arn:aws:s3:::thepoint-media-test/*'
           - 'arn:aws:s3:::thepoint-backup/*'
 - name: IAM policy SES
   community.aws.iam_policy:
@@ -156,6 +163,7 @@
       - device_name: /dev/sdb
         volume_type: gp2
         volume_size: "{{ volume_size }}"
+        encrypted: yes
     termination_protection: yes
     user_data: |
       #cloud-config

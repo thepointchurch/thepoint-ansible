@@ -12,6 +12,11 @@
         type: backup
         website: thepoint
       versioning: true
+      transition_days: 30
+      noncurrent_version_transition_days: 30
+      noncurrent_version_expiration_days: 365
+      encryption: aws:kms
+      region: eu-north-1
 
 # Production buckets
 
@@ -24,11 +29,14 @@
         website: thepoint
     - media.thepoint.org.au:
       name: s3_storage
-      bucket: media.thepoint.org.au
+      bucket: thepoint-media
+      encryption: aws:kms
       bucket_tags:
         type: website
         website: thepoint
       versioning: true
+      noncurrent_version_transition_days: 30
+      noncurrent_version_expiration_days: 60
 
 # Test buckets
 
@@ -41,10 +49,15 @@
         website: thepoint
     - media-test.thepoint.org.au:
       name: s3_storage
-      bucket: media-test.thepoint.org.au
+      bucket: thepoint-media-test
+      encryption: aws:kms
       bucket_tags:
         type: website
         website: thepoint
+      versioning: true
+      noncurrent_version_transition_days: 30
+      noncurrent_version_expiration_days: 60
+
 
 # Production/test VM
 

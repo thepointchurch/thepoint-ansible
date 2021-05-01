@@ -12,3 +12,5 @@ cache_ops: false
 log_group: thepoint
 frontend_nets: []
 cron: true
+media_encrypted: true
+settings: thepoint.settings

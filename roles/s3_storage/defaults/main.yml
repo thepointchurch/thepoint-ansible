@@ -2,3 +2,10 @@ tags: {}
 versioning: false
 website: false
 public: false
+encryption: none
+region: "{{ aws_region }}"
+storage_class: standard_ia
+transition_days: null
+expiration_days: null
+noncurrent_version_transition_days: null
+noncurrent_version_expiration_days: null

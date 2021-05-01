@@ -4,6 +4,8 @@
     name: "{{ bucket }}"
     policy: '{% if public or website %}{"Version": "2008-10-17", "Statement": [{"Sid": "", "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::{{ bucket }}/*"}]}{% else %}null{% endif %}'  # noqa 204
     versioning: "{{ versioning }}"
+    encryption: "{{ encryption }}"
+    region: "{{ region }}"
     tags: "{{ bucket_tags }}"
 - name: S3 CORS "{{ bucket }}"
   when: "'.' in bucket"
@@ -18,6 +20,19 @@
         allowed_headers:
         - Authorization
         max_age_seconds: 3000
+- name: S3 lifecycle "{{ bucket }}"
+  when: versioning and (transition_days or transition_days or noncurrent_version_transition_days or noncurrent_version_expiration_days)
+  community.aws.s3_lifecycle:
+    state: present
+    status: enabled
+    name: "{{ bucket }}"
+    rule_id: StandardLifecycle
+    storage_class: "{{ storage_class }}"
+    transition_days: "{{ transition_days }}"
+    expiration_days: "{{ expiration_days }}"
+    noncurrent_version_storage_class: "{{ storage_class }}"
+    noncurrent_version_transition_days: "{{ noncurrent_version_transition_days }}"
+    noncurrent_version_expiration_days: "{{ noncurrent_version_expiration_days }}"
 - name: S3 website "{{ bucket }}"
   when: website
   community.aws.s3_website:

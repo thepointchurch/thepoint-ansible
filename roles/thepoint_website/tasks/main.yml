@@ -145,14 +145,16 @@
           image: "{{ docker_image }}"
           container_name: "django_{{ shortname }}"
           environment:
+            DJANGO_SETTINGS_MODULE: "{{ settings }}"
             SECRET_KEY_FILE: /run/secrets/secret_key
             GUNICORN_CMD_ARGS: "--workers={{ workers }} --threads={{ threads }}"
             DATABASE_URL_FILE: /run/secrets/db_url
-            DEBUG: "{% if debug %}'True'{% endif %}"
+            DEBUG: "{% if debug %}on{% endif %}"
             CACHE_URL: "{{ cache_url }}"
             CACHE_TIMEOUT: "{{ cache_timeout }}"
-            CACHEOPS_ENABLED: "{% if cache_ops %}'True'{% endif %}"
+            CACHEOPS_ENABLED: "{% if cache_ops %}on{% endif %}"
             MEDIAFILES_BUCKET: "{{ media_bucket }}"
+            MEDIAFILES_ENCRYPTED: "{% if media_encrypted %}on{% endif %}"
             STATICFILES_BUCKET: "{{ static_bucket }}"
             EMAIL_BACKEND: "{{ email_backend }}"
             AWS_DEFAULT_REGION: "{{ aws_region }}"
