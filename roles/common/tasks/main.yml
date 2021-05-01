@@ -90,6 +90,15 @@
     owner: root
     group: root
     mode: 0644
+- name: Configure Syslog format
+  lineinfile:
+    state: present
+    create: yes
+    dest: /etc/rsyslog.d/00-rfc3339.conf
+    mode: 0644
+    line: '$ActionFileDefaultTemplate RSYSLOG_FileFormat'
+    regexp: '^\$ActionFileDefaultTemplate '
+  notify: reload_rsyslog
 - name: Format Filesystems
   filesystem: fstype=ext4 dev=/dev/{{ item.key }}
   with_dict: "{{ filesystems }}"

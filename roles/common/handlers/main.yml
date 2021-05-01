@@ -10,3 +10,7 @@
   service:
     name: chrony
     state: restarted
+- name: reload_rsyslog
+  service:
+    name: rsyslog
+    state: restarted

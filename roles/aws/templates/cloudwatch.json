@@ -11,6 +11,11 @@
 						"file_path": "/var/log/messages",
 						"log_group_name": "thepoint-web",
 						"log_stream_name": "{{ inventory_hostname_short }}_messages"
+					},
+					{
+						"file_path": "/var/log/auth.log",
+						"log_group_name": "thepoint-web",
+						"log_stream_name": "{{ inventory_hostname_short }}_auth"
 					}
 				]
 			}
