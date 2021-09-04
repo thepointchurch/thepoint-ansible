@@ -25,6 +25,11 @@
     src: /etc/aws
     dest: /root/.aws
     mode: 0755
+- name: Install SSM Agent
+  apt:
+    deb: "https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/debian_amd64/amazon-ssm-agent.deb"
+    state: present
+    force: yes
 - name: Install Cloudwatch Agent
   apt:
     deb: "https://s3.amazonaws.com/amazoncloudwatch-agent/debian/amd64/latest/amazon-cloudwatch-agent.deb"
