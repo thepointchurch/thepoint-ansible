@@ -3,7 +3,6 @@ aws_instance_type: t2.micro
 aws_image: ami-07fd151b9eb3b7264
 ssh_ipv6: 2001:44b8:2123:7b00::/56
 net_ipv4: 172.31.0.0/16
-net_ipv6: 2600:1f14:ef5:8800::/56
 subnet_ipv4: 172.31.32.0/20
 subnet_ipv6: 2600:1f14:ef5:8802::/64
 cw_group_test: thepoint-test

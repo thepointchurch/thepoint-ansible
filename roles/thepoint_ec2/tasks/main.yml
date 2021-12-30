@@ -30,7 +30,7 @@
     state: present
     name: Default
     cidr_block: "{{ net_ipv4 }}"
-#    ipv6_cidr: "{{ net_ipv6 }}"
+    ipv6_cidr: yes
     dns_hostnames: yes
     dns_support: yes
   register: vpc_details
@@ -151,19 +151,21 @@
     log_group_name: "{{ cw_group_prod }}"
 
 - name: Provision "{{ hostname }}"
-  amazon.aws.ec2:
+  amazon.aws.ec2_instance:
     key_name: "{{ ssh_id }}"
-    group: "{{ server_group.group_name }}"
+    security_group: "{{ server_group.group_name }}"
     instance_type: "{{ aws_instance_type }}"
-    instance_profile_name: "{{ django_role.iam_role.role_name }}"
-    image: "{{ aws_image }}"
+    instance_role: "{{ django_role.iam_role.role_name }}"
+    image:
+      id: "{{ aws_image }}"
     wait: yes
     wait_timeout: 600
     volumes:
       - device_name: /dev/sdb
-        volume_type: gp2
-        volume_size: "{{ volume_size }}"
-        encrypted: yes
+        ebs:
+          volume_type: gp3
+          volume_size: "{{ volume_size }}"
+          encrypted: yes
     termination_protection: yes
     user_data: |
       #cloud-config
@@ -175,32 +177,32 @@
         python-apt
       power_state:
         mode: reboot
-    count_tag:
-      Name: "{{ hostname }}"
-    exact_count: 1
-    instance_tags:
+    tags:
       Name: "{{ hostname }}"
       Role: "{{ instance_role }}"
   register: ec2_instance
 
-- name: Cloudflare DNS
+- name: Cloudflare DNS IPv6
+  when: ec2_instance["instances"]|default()
+  community.general.cloudflare_dns:
+    state: present
+    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
+    type: AAAA
+    record: "{{ hostname.split('.')[0] }}"
+    value: "{{ item.ipv6_address }}"
+    proxied: no
+    account_email: "{{ cloudflare_email }}"
+    account_api_token: "{{ cloudflare_token }}"
+  loop: "{{ ec2_instance.instances[0].network_interfaces[0].ipv6_addresses }}"
+- name: Cloudflare DNS IPv4
+  when: ec2_instance["instances"]|default() and ec2_instance.instances[0].public_ip_address|default()
   community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
     type: A
     record: "{{ hostname.split('.')[0] }}"
-    value: "{{ ec2_instance.tagged_instances[0].public_ip }}"
+    value: "{{ ec2_instance.instances[0].public_ip_address }}"
     proxied: no
     solo: yes
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
-#- name: Cloudflare DNS
-#  community.general.cloudflare_dns:
-#    state: present
-#    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
-#    type: AAAA
-#    record: "{{ hostname.split('.')[0] }}"
-#    value: "{{ ec2_instance.tagged_instances[0].public_ipv6 }}"
-#    proxied: no
-#    account_email: "{{ cloudflare_email }}"
-#    account_api_token: "{{ cloudflare_token }}"
