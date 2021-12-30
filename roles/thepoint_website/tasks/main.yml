@@ -213,8 +213,8 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
   loop:
-    - line: "0 14 * * * docker exec django_{{ shortname }} thepoint-sendrosteremails"
-      regexp: " docker exec django_{{ shortname }} thepoint-sendrosteremails"
+    - line: "0 14 * * * docker exec django_{{ shortname }} upperroom-sendrosteremails"
+      regexp: " docker exec django_{{ shortname }} upperroom-sendrosteremails"
   notify:
     - runner_restart
 - name: "Crontab : {{ shortname }}"
@@ -225,8 +225,8 @@
     owner: root
     group: root
     mode: 0644
-    line: "0 3 * * * docker exec django_{{ shortname }} thepoint clearsessions"
-    regexp: " docker exec django_{{ shortname }} thepoint clearsessions"
+    line: "0 3 * * * docker exec django_{{ shortname }} upperroom clearsessions"
+    regexp: " docker exec django_{{ shortname }} upperroom clearsessions"
   notify:
     - runner_restart
 - name: "Install backup scripts : {{ shortname }}"
@@ -237,12 +237,12 @@
     group: root
     mode: 0755
   with_items:
-    - thepoint-backup.sh
-    - thepoint-restore.sh
+    - upperroom-backup.sh
+    - upperroom-restore.sh
 - name: "Backup : {{ shortname }}"
   when: backup_bucket != ""
   cron:
     name: "{{ shortname }}_backup"
-    job: /usr/local/bin/thepoint-backup.sh "db_{{ shortname }}" "{{ media_bucket }}" "{{ backup_bucket }}"
+    job: /usr/local/bin/upperroom-backup.sh "db_{{ shortname }}" "{{ media_bucket }}" "{{ backup_bucket }}"
     hour: "22"
     minute: "0"

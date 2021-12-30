@@ -1,4 +1,4 @@
 - name: "Django {{ shortname }} collectstatic"
-  command: docker exec "django_{{ shortname }}" thepoint collectstatic --no-input
+  command: docker exec "django_{{ shortname }}" upperroom collectstatic --no-input
 - name: "Django {{ shortname }} migrate"
-  command: docker exec "django_{{ shortname }}" thepoint migrate --no-input
+  command: docker exec "django_{{ shortname }}" upperroom migrate --no-input

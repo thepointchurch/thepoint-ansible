@@ -19,4 +19,4 @@ if [ -n "${CACHE_CONTAINER}" ]; then
     docker exec -t "${CACHE_CONTAINER}" redis-cli FLUSHALL
 fi
 docker start "${APP_CONTAINER}" >/dev/null
-docker exec "${APP_CONTAINER}" thepoint migrate --no-input
+docker exec "${APP_CONTAINER}" upperroom migrate --no-input
