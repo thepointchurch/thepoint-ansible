@@ -24,7 +24,7 @@
   with_items: "{{ vhost.split(' ') }}"
 - name: "LetsEncrypt Certificate : {{ shortname }}"
   command:
-    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"  # noqa 204
     creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
 - name: "Secret: DB Password : {{ shortname }}"
   copy:

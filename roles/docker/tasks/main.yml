@@ -93,11 +93,11 @@
     minute: "0"
 - name: Certbot Container
   community.general.docker_image:
-    name: certbot/dns-cloudflare
+    name: "certbot/dns-cloudflare{{ certbot_tag }}"
     source: pull
 - name: LetsEncrypt Register
   command:
-    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare register -n --agree-tos"
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }}t register -n --agree-tos"
     creates: "/data/acme/accounts/acme-v02.api.letsencrypt.org/directory/*/private_key.json"
 - name: LetsEncrypt Deploy Hook
   copy:
@@ -116,7 +116,7 @@
     owner: root
     group: root
     mode: 0644
-    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare renew"
+    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} renew"
     regexp: ' docker run .* certbot.* renew'
   notify:
     - runner_restart

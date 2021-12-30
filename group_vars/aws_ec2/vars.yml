@@ -6,3 +6,4 @@ smtp_relay: "email-smtp.{{ ansible_ec2_placement_region }}.amazonaws.com::587"
 smtp_relay_domain: amazonaws.com
 ntp_servers:
   - 169.254.169.123
+certbot_tag: "{{ ':arm64v8-latest' if architecture == 'arm64' else '' }}"
