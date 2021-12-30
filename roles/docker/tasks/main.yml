@@ -82,7 +82,7 @@
 - name: GitHub Packages
   community.general.docker_login:
     state: present
-    registry: docker.pkg.github.com
+    registry: ghcr.io
     username: "{{ github_user }}"
     password: "{{ github_token }}"
 - name: Docker Prune
