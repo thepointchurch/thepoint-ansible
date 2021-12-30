@@ -63,5 +63,5 @@
 
     - thepoint_docker:
       name: thepoint_ec2
-      hostname: abigail.thepoint.org.au
+      hostname: rahab.thepoint.org.au
       instance_role: thepoint_docker
