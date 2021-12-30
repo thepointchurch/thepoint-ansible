@@ -10,6 +10,7 @@
       - dnsutils
       - git
       - net-tools
+      - python-is-python3
     state: present
     force: yes
 - name: Install unattended upgrades
