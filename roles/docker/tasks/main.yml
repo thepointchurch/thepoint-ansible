@@ -116,7 +116,7 @@
     owner: root
     group: root
     mode: 0644
-    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} renew"
+    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} renew --quiet --max-log-backups 7"
     regexp: ' docker run .* certbot.* renew'
   notify:
     - runner_restart
