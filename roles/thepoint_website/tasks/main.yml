@@ -64,7 +64,7 @@
     group: root
     mode: 0644
 - name: "Redis Compose : {{ shortname }}"
-  when: cache_url is match("rediscache:")
+  when: cache_url is match("redis:")
   community.general.docker_compose:
     project_name: "redis_{{ shortname }}"
     state: present
