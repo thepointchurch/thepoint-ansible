@@ -2,29 +2,29 @@
 
 [[package]]
 name = "ansible"
-version = "7.1.0"
+version = "7.2.0"
 description = "Radically simple IT automation"
 category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ansible-7.1.0-py3-none-any.whl", hash = "sha256:dd6d24dab08793e416eb1564ea716c586caeb104d4abbcada05bed94f9cd01cc"},
-    {file = "ansible-7.1.0.tar.gz", hash = "sha256:1e47238c4aa9e68c0c5367a3fd707ba6c3949b4aaf912b06440ad78dd2bf018d"},
+    {file = "ansible-7.2.0-py3-none-any.whl", hash = "sha256:756a6d8fec6c19ccd7a00ad0f0cb18859f4ab77e0c5063f73a115f3fb75284aa"},
+    {file = "ansible-7.2.0.tar.gz", hash = "sha256:60e2c1a58f1ceb34a190b7c380f7b3386d1e7369061954b1f8b8ca3df76063cc"},
 ]
 
 [package.dependencies]
-ansible-core = ">=2.14.1,<2.15.0"
+ansible-core = ">=2.14.2,<2.15.0"
 
 [[package]]
 name = "ansible-core"
-version = "2.14.1"
+version = "2.14.2"
 description = "Radically simple IT automation"
 category = "main"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "ansible-core-2.14.1.tar.gz", hash = "sha256:589257f2560fffd5d4465352cd4504e2cbfc418ba49e0c4265cd54e16070c938"},
-    {file = "ansible_core-2.14.1-py3-none-any.whl", hash = "sha256:06e136c8eda4d8695251995d3c3efa612ebb3ac66948bf42492d4c7b46a75ff2"},
+    {file = "ansible-core-2.14.2.tar.gz", hash = "sha256:47f0d4b4125b58edba6435a47f37cbe6a18da54594d18f812958bb0cb58d4e65"},
+    {file = "ansible_core-2.14.2-py3-none-any.whl", hash = "sha256:d1d44aab18fb5436d94ba77081bcfebece2a87015665e2444aadc16ece230886"},
 ]
 
 [package.dependencies]
@@ -48,18 +48,18 @@ files = [
 
 [[package]]
 name = "boto3"
-version = "1.26.59"
+version = "1.26.62"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.26.59-py3-none-any.whl", hash = "sha256:34ee771a5cc84c16e75d4b9ef4672f51c2bafdce66ec457bbaac630b37d9cd5e"},
-    {file = "boto3-1.26.59.tar.gz", hash = "sha256:7d9cebb507fc96e6eb429621ccb2e731b75e7bbb8d6d9f0cf0c08089ee3c1ab7"},
+    {file = "boto3-1.26.62-py3-none-any.whl", hash = "sha256:0a0171c648da81916e6f5badebfefdbd15280118f69462eb9425f7bff4c1323f"},
+    {file = "boto3-1.26.62.tar.gz", hash = "sha256:0271e05cf962de53deb4ee5c6e37433c8284584a26f45275cf43de3f99410aa4"},
 ]
 
 [package.dependencies]
-botocore = ">=1.29.59,<1.30.0"
+botocore = ">=1.29.62,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -68,14 +68,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.59"
+version = "1.29.62"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.59-py3-none-any.whl", hash = "sha256:5533644ddefaccfaa98460a63eb73e61a46aad019771226d103b1054b0df6103"},
-    {file = "botocore-1.29.59.tar.gz", hash = "sha256:bc75d41c5eecf624a2f9875483135aa78088a50c8d29847793f92756697cfed5"},
+    {file = "botocore-1.29.62-py3-none-any.whl", hash = "sha256:11730086c8acc33372f438dd9ae3e960e6fc1c0dfa2801768b0585c8c874977e"},
+    {file = "botocore-1.29.62.tar.gz", hash = "sha256:8c7fdc6b14d9ef48ee8d1070700ab4204c121bc04ee57874e8419a9cdbe51144"},
 ]
 
 [package.dependencies]
@@ -249,14 +249,14 @@ testing = ["covdefaults (>=2.2.2)", "coverage (>=7.0.1)", "pytest (>=7.2)", "pyt
 
 [[package]]
 name = "identify"
-version = "2.5.16"
+version = "2.5.17"
 description = "File identification library for Python"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "identify-2.5.16-py2.py3-none-any.whl", hash = "sha256:832832a58ecc1b8f33d5e8cb4f7d3db2f5c7fbe922dfee5f958b48fed691501a"},
-    {file = "identify-2.5.16.tar.gz", hash = "sha256:c47acedfe6495b1c603ed7e93469b26e839cab38db4155113f36f718f8b3dc47"},
+    {file = "identify-2.5.17-py2.py3-none-any.whl", hash = "sha256:7d526dd1283555aafcc91539acc061d8f6f59adb0a7bba462735b0a318bff7ed"},
+    {file = "identify-2.5.17.tar.gz", hash = "sha256:93cc61a861052de9d4c541a7acb7e3dcc9c11b398a2144f6e52ae5285f5f4f06"},
 ]
 
 [package.extras]
@@ -409,14 +409,14 @@ test = ["appdirs (==1.4.4)", "covdefaults (>=2.2.2)", "pytest (>=7.2)", "pytest-
 
 [[package]]
 name = "pre-commit"
-version = "3.0.1"
+version = "3.0.3"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 category = "dev"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "pre_commit-3.0.1-py2.py3-none-any.whl", hash = "sha256:61ecb75e0e99939cc30c79181c0394545657855e9172c42ff98ebecb0e02fcb7"},
-    {file = "pre_commit-3.0.1.tar.gz", hash = "sha256:3a3f9229e8c19a626a7f91be25b3c8c135e52de1a678da98eb015c0d0baea7a5"},
+    {file = "pre_commit-3.0.3-py2.py3-none-any.whl", hash = "sha256:83e2e8cc5cbb3691cff9474494816918d865120768aa36c9eda6185126667d21"},
+    {file = "pre_commit-3.0.3.tar.gz", hash = "sha256:4187e74fda38f0f700256fb2f757774385503b04292047d0899fc913207f314b"},
 ]
 
 [package.dependencies]
@@ -541,14 +541,14 @@ crt = ["botocore[crt] (>=1.20.29,<2.0a.0)"]
 
 [[package]]
 name = "setuptools"
-version = "67.0.0"
+version = "67.1.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "setuptools-67.0.0-py3-none-any.whl", hash = "sha256:9d790961ba6219e9ff7d9557622d2fe136816a264dd01d5997cfc057d804853d"},
-    {file = "setuptools-67.0.0.tar.gz", hash = "sha256:883131c5b6efa70b9101c7ef30b2b7b780a4283d5fc1616383cdf22c83cbefe6"},
+    {file = "setuptools-67.1.0-py3-none-any.whl", hash = "sha256:a7687c12b444eaac951ea87a9627c4f904ac757e7abdc5aac32833234af90378"},
+    {file = "setuptools-67.1.0.tar.gz", hash = "sha256:e261cdf010c11a41cb5cb5f1bf3338a7433832029f559a6a7614bd42a967c300"},
 ]
 
 [package.extras]
@@ -609,4 +609,4 @@ testing = ["coverage (>=6.2)", "coverage-enable-subprocess (>=1)", "flaky (>=3.7
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "88b836dad40f7860377407a5a87202f01dca8d7988426946cacbcf2b89e5a97d"
+content-hash = "c68710946767b76d9da1d2a4964e25dc60d5dc0f46436fad3d97f905469194c1"
