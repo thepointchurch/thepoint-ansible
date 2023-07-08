@@ -1,3 +1,4 @@
+---
 vhost: "www.{{ ansible_domain }} {{ ansible_domain }}"
 workers: 3
 threads: 12

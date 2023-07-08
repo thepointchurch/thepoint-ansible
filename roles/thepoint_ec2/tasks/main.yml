@@ -1,5 +1,6 @@
+---
 - name: Web Server EC2 group
-  amazon.aws.ec2_group:
+  amazon.aws.ec2_security_group:
     state: present
     name: Web Server
     tags:
@@ -19,7 +20,7 @@
       - proto: all
         cidr_ip: 0.0.0.0/0
         cidr_ipv6: ::/0
-  register: server_group
+  register: thepoint_ec2_server_group
 - name: SSH key
   amazon.aws.ec2_key:
     state: present
@@ -33,17 +34,17 @@
     ipv6_cidr: yes
     dns_hostnames: yes
     dns_support: yes
-  register: vpc_details
+  register: thepoint_ec2_vpc_details
 - name: VPC subnet
   amazon.aws.ec2_vpc_subnet:
     state: present
-    vpc_id: "{{ vpc_details.vpc.id }}"
+    vpc_id: "{{ thepoint_ec2_vpc_details.vpc.id }}"
     map_public: yes
     assign_instances_ipv6: yes
     cidr: "{{ subnet_ipv4 }}"
     ipv6_cidr: "{{ subnet_ipv6 }}"
     az: "{{ aws_region }}a"
-  register: vpc_subnet
+  register: thepoint_ec2_vpc_subnet
 
 
 - name: IAM role EC2
@@ -59,103 +60,103 @@
           Principal:
             Service: 'ec2.amazonaws.com'
     name: DjangoSite
-  register: django_role
+  register: thepoint_ec2_django_role
 - name: IAM policy EC2
-  community.aws.iam_policy:
+  amazon.aws.iam_policy:
     state: present
     iam_type: role
-    iam_name: "{{ django_role.iam_role.role_name }}"
+    iam_name: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     policy_name: Django_EC2
     policy_json:
       Version: '2012-10-17'
       Statement:
         - Action:
-          - 'ec2:Describe*'
-          - 'ec2:CreateTags'
+            - 'ec2:Describe*'
+            - 'ec2:CreateTags'
           Effect: Allow
           Resource:
-          - '*'
+            - '*'
 - name: IAM policy Logs
-  community.aws.iam_policy:
+  amazon.aws.iam_policy:
     state: present
     iam_type: role
-    iam_name: "{{ django_role.iam_role.role_name }}"
+    iam_name: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     policy_name: Django_Logs
     policy_json:
       Version: '2012-10-17'
       Statement:
         - Action:
-          - 'logs:*'
+            - 'logs:*'
           Effect: Allow
           Resource:
-          - 'arn:aws:logs:*:*:*'
+            - 'arn:aws:logs:*:*:*'
 - name: IAM policy S3
-  community.aws.iam_policy:
+  amazon.aws.iam_policy:
     state: present
     iam_type: role
-    iam_name: "{{ django_role.iam_role.role_name }}"
+    iam_name: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     policy_name: Django_S3
     policy_json:
       Statement:
         - Action:
-          - 's3:ListBucket'
-          - 's3:GetBucketLocation'
-          - 's3:ListBucketMultipartUploads'
-          - 's3:ListBucketVersions'
-          - 'kms:Decrypt'
-          - 'kms:Encrypt'
-          - 'kms:GenerateDataKey'
-          - 'kms:ReEncryptTo'
-          - 'kms:DescribeKey'
-          - 'kms:ReEncryptFrom'
+            - 's3:ListBucket'
+            - 's3:GetBucketLocation'
+            - 's3:ListBucketMultipartUploads'
+            - 's3:ListBucketVersions'
+            - 'kms:Decrypt'
+            - 'kms:Encrypt'
+            - 'kms:GenerateDataKey'
+            - 'kms:ReEncryptTo'
+            - 'kms:DescribeKey'
+            - 'kms:ReEncryptFrom'
           Effect: Allow
           Resource:
-          - 'arn:aws:s3:::static-test.thepoint.org.au'
-          - 'arn:aws:s3:::static.thepoint.org.au'
-          - 'arn:aws:s3:::thepoint-media'
-          - 'arn:aws:s3:::thepoint-media-test'
-          - 'arn:aws:s3:::thepoint-backup'
-          - 'arn:aws:kms:*:*:key/alias/aws/s3'
+            - 'arn:aws:s3:::static-test.thepoint.org.au'
+            - 'arn:aws:s3:::static.thepoint.org.au'
+            - 'arn:aws:s3:::thepoint-media'
+            - 'arn:aws:s3:::thepoint-media-test'
+            - 'arn:aws:s3:::thepoint-backup'
+            - 'arn:aws:kms:*:*:key/alias/aws/s3'
         - Action:
-          - 's3:*Object*'
-          - 's3:ListMultipartUploadParts'
-          - 's3:AbortMultipartUpload'
+            - 's3:*Object*'
+            - 's3:ListMultipartUploadParts'
+            - 's3:AbortMultipartUpload'
           Effect: Allow
           Resource:
-          - 'arn:aws:s3:::static-test.thepoint.org.au/*'
-          - 'arn:aws:s3:::static.thepoint.org.au/*'
-          - 'arn:aws:s3:::thepoint-media/*'
-          - 'arn:aws:s3:::thepoint-media-test/*'
-          - 'arn:aws:s3:::thepoint-backup/*'
+            - 'arn:aws:s3:::static-test.thepoint.org.au/*'
+            - 'arn:aws:s3:::static.thepoint.org.au/*'
+            - 'arn:aws:s3:::thepoint-media/*'
+            - 'arn:aws:s3:::thepoint-media-test/*'
+            - 'arn:aws:s3:::thepoint-backup/*'
 - name: IAM policy SES
-  community.aws.iam_policy:
+  amazon.aws.iam_policy:
     state: present
     iam_type: role
-    iam_name: "{{ django_role.iam_role.role_name }}"
+    iam_name: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     policy_name: Django_SES
     policy_json:
       Statement:
         - Action:
-          - 'ses:SendEmail'
-          - 'ses:SendRawEmail'
+            - 'ses:SendEmail'
+            - 'ses:SendRawEmail'
           Effect: Allow
           Resource:
-          - '*'
+            - '*'
       Version: '2012-10-17'
 - name: CW Group Test
-  community.aws.cloudwatchlogs_log_group:
+  amazon.aws.cloudwatchlogs_log_group:
     log_group_name: "{{ cw_group_test }}"
     retention: 7
 - name: CW Group Production
-  community.aws.cloudwatchlogs_log_group:
+  amazon.aws.cloudwatchlogs_log_group:
     log_group_name: "{{ cw_group_prod }}"
 
 - name: Provision "{{ hostname }}"
   amazon.aws.ec2_instance:
     key_name: "{{ ssh_id }}"
-    security_group: "{{ server_group.group_name }}"
+    security_group: "{{ thepoint_ec2_server_group.group_name }}"
     instance_type: "{{ aws_instance_type }}"
-    instance_role: "{{ django_role.iam_role.role_name }}"
+    instance_role: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     image:
       id: "{{ aws_image }}"
     wait: yes
@@ -180,10 +181,10 @@
     tags:
       Name: "{{ hostname }}"
       Role: "{{ instance_role }}"
-  register: ec2_instance
+  register: thepoint_ec2_instance
 
 - name: Cloudflare DNS IPv6
-  when: ec2_instance["instances"]|default()
+  when: thepoint_ec2_instance["instances"]|default()
   community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
@@ -193,15 +194,15 @@
     proxied: no
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
-  loop: "{{ ec2_instance.instances[0].network_interfaces[0].ipv6_addresses }}"
+  loop: "{{ thepoint_ec2_instance.instances[0].network_interfaces[0].ipv6_addresses }}"
 - name: Cloudflare DNS IPv4
-  when: ec2_instance["instances"]|default() and ec2_instance.instances[0].public_ip_address|default()
+  when: thepoint_ec2_instance["instances"]|default() and thepoint_ec2_instance.instances[0].public_ip_address|default()
   community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
     type: A
     record: "{{ hostname.split('.')[0] }}"
-    value: "{{ ec2_instance.instances[0].public_ip_address }}"
+    value: "{{ thepoint_ec2_instance.instances[0].public_ip_address }}"
     proxied: no
     solo: yes
     account_email: "{{ cloudflare_email }}"

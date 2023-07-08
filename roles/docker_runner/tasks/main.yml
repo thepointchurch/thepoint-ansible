@@ -1,5 +1,6 @@
+---
 - name: Docker Runner crontab
-  copy:
+  ansible.builtin.copy:
     dest: /etc/docker.crontab
     content: ""
     force: no
@@ -7,7 +8,7 @@
     group: root
     mode: 0644
 - name: Docker Runner Configuration
-  copy:
+  ansible.builtin.copy:
     content: |
       FROM alpine:latest
       RUN apk update && apk add --no-cache docker-cli
@@ -16,12 +17,12 @@
     owner: root
     group: root
     mode: 0644
-  register: runner_config_status
+  register: docker_runner_config_status
 - name: Docker Runner Image
   community.general.docker_image:
     name: runner
     source: build
-    force_source: "{% if runner_config_status.changed %}yes{% else %}no{% endif %}"
+    force_source: "{% if docker_runner_config_status.changed %}yes{% else %}no{% endif %}"
     build:
       pull: yes
       dockerfile: /etc/Dockerfile.runner

@@ -1,2 +1,4 @@
+---
 - name: runner_restart
-  command: docker restart runner
+  ansible.builtin.command: docker restart runner
+  changed_when: false

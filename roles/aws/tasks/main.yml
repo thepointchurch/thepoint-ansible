@@ -1,5 +1,6 @@
+---
 - name: Install AWS CLI
-  apt:
+  ansible.builtin.apt:
     pkg:
       - awscli
       - curl
@@ -7,42 +8,46 @@
     state: present
     force: yes
 - name: Create AWS CLI configuration directory
-  file:
+  ansible.builtin.file:
     state: directory
     dest: /etc/aws
     owner: root
     group: root
     mode: 0755
 - name: Configure AWS CLI
-  shell: |
+  ansible.builtin.shell: |
     set -o pipefail
-    /bin/echo -e "[default]\nregion = $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | awk -F\" '/region/{print $4}')" >/etc/aws/config  # noqa 204
+    /bin/cat >/etc/aws/config <<AWS_CONFIG
+    [default]
+    region = $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | awk -F\" '/region/{print $4}')
+    AWS_CONFIG
   args:
     creates: /etc/aws/config
     executable: /bin/bash
 - name: Link root AWS CLI config
-  file:
+  ansible.builtin.file:
     state: link
     src: /etc/aws
     dest: /root/.aws
     mode: 0755
 - name: Install SSM Agent
-  apt:
-    deb: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ssm-{{ aws_region }}/latest/debian_{{ architecture }}/amazon-ssm-agent.deb"
+  ansible.builtin.apt:
+    deb: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ssm-{{ aws_region }}\
+      /latest/debian_{{ architecture }}/amazon-ssm-agent.deb"
     state: present
     force: yes
 - name: Install Cloudwatch Agent
-  apt:
+  ansible.builtin.apt:
     deb: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/{{ architecture }}/latest/amazon-cloudwatch-agent.deb"
     state: present
     force: yes
 - name: Cloudwatch Agent User
-  user:
+  ansible.builtin.user:
     name: cwagent
     groups: adm
     append: yes
 - name: Configure Cloudwatch Agent
-  template:
+  ansible.builtin.template:
     src: cloudwatch.json
     dest: "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
     owner: cwagent
@@ -51,7 +56,7 @@
   notify:
     - restart_cloudwatch
 - name: Cloudwatch Agent
-  service:
+  ansible.builtin.service:
     name: amazon-cloudwatch-agent
     state: started
     enabled: true

@@ -1,4 +1,7 @@
-- name: "Django {{ shortname }} collectstatic"
-  command: docker exec "django_{{ shortname }}" upperroom collectstatic --no-input
-- name: "Django {{ shortname }} migrate"
-  command: docker exec "django_{{ shortname }}" upperroom migrate --no-input
+---
+- name: "Django collectstatic {{ shortname }}"
+  ansible.builtin.command: docker exec "django_{{ shortname }}" upperroom collectstatic --no-input
+  changed_when: false
+- name: "Django migrate {{ shortname }}"
+  ansible.builtin.command: docker exec "django_{{ shortname }}" upperroom migrate --no-input
+  changed_when: false

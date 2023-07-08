@@ -1,8 +1,8 @@
-tags: {}
+---
 versioning: false
 website: false
 public: false
-encryption: none
+encryption: aws:kms
 region: "{{ aws_region }}"
 storage_class: standard_ia
 transition_days: null

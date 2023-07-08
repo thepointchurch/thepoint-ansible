@@ -1,12 +1,13 @@
+---
 - name: NGINX config directory
-  file:
+  ansible.builtin.file:
     state: directory
     dest: /etc/nginx
     owner: root
     group: root
     mode: 0755
 - name: NGINX config
-  template:
+  ansible.builtin.template:
     src: nginx.conf
     dest: "/etc/nginx.conf"
     owner: root

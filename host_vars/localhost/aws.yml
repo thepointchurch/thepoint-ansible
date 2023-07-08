@@ -1,3 +1,4 @@
+---
 aws_region: us-west-2
 aws_instance_type: t4g.small
 aws_image: ami-01d674d7a205b2907

@@ -1,3 +1,4 @@
+---
 filesystems: {}
 ntp_servers:
   - 0.debian.pool.ntp.org

@@ -1,5 +1,6 @@
+---
 - name: "NGINX config : {{ shortname }}"
-  template:
+  ansible.builtin.template:
     src: nginx.conf
     dest: "/etc/nginx/{{ shortname }}.conf"
     owner: root
@@ -23,25 +24,26 @@
     account_api_token: "{{ cloudflare_token }}"
   with_items: "{{ vhost.split(' ') }}"
 - name: "LetsEncrypt Certificate : {{ shortname }}"
-  command:
-    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"  # noqa 204
+  ansible.builtin.command:
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} \
+      certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
     creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
 - name: "Secret: DB Password : {{ shortname }}"
-  copy:
+  ansible.builtin.copy:
     content: "{{ db_password }}"
     dest: "/etc/secrets/db_password_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
 - name: "Secret: DB URL : {{ shortname }}"
-  copy:
+  ansible.builtin.copy:
     content: "psql://thepoint:{{ db_password }}@db:5432/thepoint"
     dest: "/etc/secrets/db_url_{{ shortname }}.txt"
     owner: root
     group: root
     mode: 0644
 - name: "Secret Key : {{ shortname }}"
-  copy:
+  ansible.builtin.copy:
     content: "{{ secret_key }}"
     dest: "/etc/secrets/secret_key_{{ shortname }}.txt"
     owner: root
@@ -54,7 +56,7 @@
   community.general.docker_network:
     name: "backend_{{ shortname }}"
 - name: "Redis Configuration : {{ shortname }}"
-  copy:
+  ansible.builtin.copy:
     content: |
       appendonly yes
       auto-aof-rewrite-percentage 100
@@ -200,10 +202,10 @@
     - "Django {{ shortname }} collectstatic"
     - "Django {{ shortname }} migrate"
 - name: setvar
-  set_fact:
-    frontend_nets: "{{ frontend_nets + [ 'frontend_' + shortname ] }}"
+  ansible.builtin.set_fact:
+    frontend_nets: "{{ frontend_nets + ['frontend_' + shortname] }}"  # noqa: var-naming[no-role-prefix]
 - name: "Crontab : {{ shortname }}"
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: "{% if cron %}present{% else %}absent{% endif %}"
     dest: /etc/docker.crontab
     create: yes
@@ -218,7 +220,7 @@
   notify:
     - runner_restart
 - name: "Crontab : {{ shortname }}"
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: present
     dest: /etc/docker.crontab
     create: yes
@@ -230,7 +232,7 @@
   notify:
     - runner_restart
 - name: "Install backup scripts : {{ shortname }}"
-  copy:
+  ansible.builtin.copy:
     src: "{{ item }}"
     dest: /usr/local/bin
     owner: root
@@ -241,7 +243,7 @@
     - upperroom-restore.sh
 - name: "Backup : {{ shortname }}"
   when: backup_bucket != ""
-  cron:
+  ansible.builtin.cron:
     name: "{{ shortname }}_backup"
     job: /usr/local/bin/upperroom-backup.sh "db_{{ shortname }}" "{{ media_bucket }}" "{{ backup_bucket }}"
     hour: "22"

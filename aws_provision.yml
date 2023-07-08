@@ -1,12 +1,13 @@
+---
 - hosts: localhost
   connection: local
-  gather_facts: False
+  gather_facts: false
   roles:
 
-# Utility buckets
+    # Utility buckets
 
     - thepoint-backup:
-      name: s3_storage
+      role: s3_storage
       bucket: thepoint-backup
       bucket_tags:
         type: backup
@@ -15,22 +16,20 @@
       transition_days: 30
       noncurrent_version_transition_days: 30
       noncurrent_version_expiration_days: 365
-      encryption: aws:kms
       region: eu-north-1
 
-# Production buckets
+    # Production buckets
 
     - static.thepoint.org.au:
-      name: s3_storage
+      role: s3_storage
       bucket: static.thepoint.org.au
       public: true
       bucket_tags:
         type: website
         website: thepoint
     - media.thepoint.org.au:
-      name: s3_storage
+      role: s3_storage
       bucket: thepoint-media
-      encryption: aws:kms
       bucket_tags:
         type: website
         website: thepoint
@@ -38,19 +37,18 @@
       noncurrent_version_transition_days: 30
       noncurrent_version_expiration_days: 60
 
-# Test buckets
+    # Test buckets
 
     - static-test.thepoint.org.au:
-      name: s3_storage
+      role: s3_storage
       bucket: static-test.thepoint.org.au
       public: true
       bucket_tags:
         type: website
         website: thepoint
     - media-test.thepoint.org.au:
-      name: s3_storage
+      role: s3_storage
       bucket: thepoint-media-test
-      encryption: aws:kms
       bucket_tags:
         type: website
         website: thepoint
@@ -58,10 +56,9 @@
       noncurrent_version_transition_days: 30
       noncurrent_version_expiration_days: 60
 
-
-# Production/test VM
+    # Production/test VM
 
     - thepoint_docker:
-      name: thepoint_ec2
+      role: thepoint_ec2
       hostname: rahab.thepoint.org.au
       instance_role: thepoint_docker

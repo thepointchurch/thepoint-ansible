@@ -1,9 +1,13 @@
+---
 - name: Set the locale to en_AU.UTF-8
-  locale_gen: name=en_AU.UTF-8 state=present
+  community.general.locale_gen:
+    name: en_AU.UTF-8
+    state: present
 - name: Set the timezone to Australia/Brisbane
-  timezone: name=Australia/Brisbane
+  community.general.timezone:
+    name: Australia/Brisbane
 - name: Install miscellaneous packages
-  apt:
+  ansible.builtin.apt:
     pkg:
       - acl
       - aptitude
@@ -14,28 +18,28 @@
     state: present
     force: yes
 - name: Install unattended upgrades
-  apt:
+  ansible.builtin.apt:
     pkg:
       - unattended-upgrades
       - apt-listchanges
     state: present
     force: yes
 - name: Configure unattended upgrades (periodic)
-  copy:
+  ansible.builtin.copy:
     src: unattend/20auto-upgrades
     dest: /etc/apt/apt.conf.d/20auto-upgrades
     owner: root
     group: root
     mode: 0644
 - name: Configure unattended upgrades
-  template:
+  ansible.builtin.template:
     src: unattend/50unattended-upgrades
     dest: /etc/apt/apt.conf.d/50unattended-upgrades
     owner: root
     group: root
     mode: 0644
 - name: Configure journald
-  template:
+  ansible.builtin.template:
     src: systemd/journald.conf
     dest: /etc/systemd/journald.conf
     owner: root
@@ -43,13 +47,13 @@
     mode: 0644
   notify: reload_journald
 - name: Install chrony
-  apt:
+  ansible.builtin.apt:
     pkg:
       - chrony
     state: present
     force: yes
 - name: Configure chrony
-  template:
+  ansible.builtin.template:
     src: chrony/chrony.conf
     dest: /etc/chrony/chrony.conf
     owner: root
@@ -57,14 +61,14 @@
     mode: 0644
   notify: reload_chrony
 - name: Install Exim
-  apt:
+  ansible.builtin.apt:
     pkg:
       - exim4-daemon-light
     state: present
     force: yes
 - name: Configure root mail
   when: root_mail is defined
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: present
     dest: /etc/aliases
     mode: 0644
@@ -73,14 +77,14 @@
   notify: newaliases
 - name: Configure root mail
   when: root_from is defined
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: present
     dest: /etc/email-addresses
     mode: 0644
     line: 'root: {{ root_from }}'
     regexp: '^root: '
 - name: Configure Exim
-  template:
+  ansible.builtin.template:
     src: exim/update-exim4.conf.conf
     dest: /etc/exim4/update-exim4.conf.conf
     owner: root
@@ -93,14 +97,14 @@
   when:
     - smtp_user is defined
     - smtp_password is defined
-  template:
+  ansible.builtin.template:
     src: exim/passwd.client
     dest: /etc/exim4/passwd.client
     owner: root
     group: root
     mode: 0644
 - name: Configure Syslog format
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: present
     create: yes
     dest: /etc/rsyslog.d/00-rfc3339.conf
@@ -109,8 +113,16 @@
     regexp: '^\$ActionFileDefaultTemplate '
   notify: reload_rsyslog
 - name: Format Filesystems
-  filesystem: fstype=ext4 dev=/dev/{{ item.key }}
+  community.general.filesystem:
+    fstype: ext4
+    dev: /dev/{{ item.key }}
   with_dict: "{{ filesystems }}"
 - name: Mount Filesystems
-  mount: state=mounted src=/dev/{{ item.key }} name={{ item.value }} fstype=ext4 opts=noatime passno=2
+  ansible.posix.mount:
+    state: mounted
+    src: /dev/{{ item.key }}
+    name: '{{ item.value }}'
+    fstype: ext4
+    opts: noatime
+    passno: 2
   with_dict: "{{ filesystems }}"

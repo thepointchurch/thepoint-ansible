@@ -1,17 +1,18 @@
+---
 - hosts: tag_Role_thepoint_docker
   become: yes
   pre_tasks:
     - name: Gathering EC2 Facts
-      action: ec2_metadata_facts
+      action: amazon.aws.ec2_metadata_facts
   roles:
     - aws
     - common
     - docker
 
-# Test website
+    # Test website
 
     - test:
-      name: thepoint_website
+      role: thepoint_website
       shortname: test
       description: The Point Test
       vhost: test.thepoint.org.au
@@ -26,10 +27,10 @@
       email_backend: django.core.mail.backends.console.EmailBackend
       log_group: "{{ cw_group_test }}"
 
-# Production website
+    # Production website
 
     - prod:
-      name: thepoint_website
+      role: thepoint_website
       shortname: prod
       description: The Point
       vhost: thepoint.org.au www.thepoint.org.au
@@ -44,8 +45,8 @@
       email_backend: django_amazon_ses.EmailBackend
 
     - nginx:
-      name: docker_nginx
+      role: docker_nginx
       log_group: "{{ cw_group_prod }}"
     - runner:
-      name: docker_runner
+      role: docker_runner
       log_group: "{{ cw_group_prod }}"

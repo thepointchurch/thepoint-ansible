@@ -1,20 +1,23 @@
+---
 - name: newaliases
-  command: /usr/bin/newaliases
+  ansible.builtin.command: /usr/bin/newaliases
+  changed_when: false
 - name: update-exim4
-  command: /usr/sbin/update-exim4.conf
+  ansible.builtin.command: /usr/sbin/update-exim4.conf
+  changed_when: false
 - name: reload_exim
-  service:
+  ansible.builtin.service:
     name: exim4
     state: reloaded
 - name: reload_chrony
-  service:
+  ansible.builtin.service:
     name: chrony
     state: restarted
 - name: reload_rsyslog
-  service:
+  ansible.builtin.service:
     name: rsyslog
     state: restarted
 - name: reload_journald
-  service:
+  ansible.builtin.service:
     name: systemd-journald
     state: restarted

@@ -1,2 +1,4 @@
+---
 - name: nginx_reload
-  command: docker kill -s HUP nginx
+  ansible.builtin.command: docker kill -s HUP nginx
+  changed_when: false

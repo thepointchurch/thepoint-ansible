@@ -1,15 +1,16 @@
+---
 - name: Docker Sysctl
   ansible.posix.sysctl:
     name: "{{ item.key }}"
     value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/docker.conf
     state: present
-  loop: "{{ sysctl_vars|dict2items }}"
+  loop: "{{ docker_sysctl_vars | dict2items }}"
   vars:
-    sysctl_vars:
+    docker_sysctl_vars:
       vm.overcommit_memory: '1'
 - name: Disable Transparent Huge Pages (THP)
-  copy:
+  ansible.builtin.copy:
     content: |
       [Unit]
       Description=Disable Transparent Huge Pages (THP)
@@ -30,7 +31,7 @@
   notify:
     - transparent_hugepage
 - name: Install Docker
-  apt:
+  ansible.builtin.apt:
     pkg:
       - docker.io
       - docker-compose
@@ -38,21 +39,21 @@
     state: present
     force: yes
 - name: NGINX config directory
-  file:
+  ansible.builtin.file:
     state: directory
     dest: /etc/nginx
     owner: root
     group: root
     mode: 0755
 - name: Create LetsEncrypt directory
-  file:
+  ansible.builtin.file:
     state: directory
     dest: /data/acme
     owner: root
     group: root
     mode: 0755
 - name: LetsEncrypt config
-  copy:
+  ansible.builtin.copy:
     content: |
       email = admin@thepoint.org.au
       authenticator = dns-cloudflare
@@ -64,7 +65,7 @@
     group: root
     mode: 0600
 - name: LetsEncrypt Cloudflare config
-  copy:
+  ansible.builtin.copy:
     content: |
       dns_cloudflare_email = {{ cloudflare_email }}
       dns_cloudflare_api_key = {{ cloudflare_token }}
@@ -73,7 +74,7 @@
     group: root
     mode: 0600
 - name: Create Docker secrets directory
-  file:
+  ansible.builtin.file:
     state: directory
     dest: /etc/secrets
     owner: root
@@ -86,7 +87,7 @@
     username: "{{ github_user }}"
     password: "{{ github_token }}"
 - name: Docker Prune
-  cron:
+  ansible.builtin.cron:
     name: docker_prune
     job: /usr/bin/docker system prune -f >/dev/null
     hour: "19"
@@ -96,11 +97,12 @@
     name: "certbot/dns-cloudflare{{ certbot_tag }}"
     source: pull
 - name: LetsEncrypt Register
-  command:
-    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }}t register -n --agree-tos"
+  ansible.builtin.command:
+    cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' \
+          certbot/dns-cloudflare{{ certbot_tag }}t register -n --agree-tos"
     creates: "/data/acme/accounts/acme-v02.api.letsencrypt.org/directory/*/private_key.json"
 - name: LetsEncrypt Deploy Hook
-  copy:
+  ansible.builtin.copy:
     content: |
       #!/bin/sh
       /usr/bin/docker restart nginx
@@ -109,14 +111,15 @@
     group: root
     mode: 0755
 - name: LetsEncrypt crontab
-  lineinfile:
+  ansible.builtin.lineinfile:
     state: present
     dest: /etc/docker.crontab
     create: yes
     owner: root
     group: root
     mode: 0644
-    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} renew --quiet --max-log-backups 7"
+    line: "15 4 * * * docker run -v '/data/acme:/etc/letsencrypt:rw' \
+           certbot/dns-cloudflare{{ certbot_tag }} renew --quiet --max-log-backups 7"
     regexp: ' docker run .* certbot.* renew'
   notify:
     - runner_restart

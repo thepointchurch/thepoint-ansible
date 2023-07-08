@@ -1,27 +1,37 @@
+---
 - name: S3 bucket "{{ bucket }}"
   amazon.aws.s3_bucket:
     state: present
     name: "{{ bucket }}"
-    policy: '{% if public or website %}{"Version": "2008-10-17", "Statement": [{"Sid": "", "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "s3:GetObject", "Resource": "arn:aws:s3:::{{ bucket }}/*"}]}{% else %}null{% endif %}'  # noqa 204
+    policy: >
+      {% if public or website %}{"Version": "2008-10-17", "Statement": [{
+      "Sid": "",
+      "Effect": "Allow",
+      "Principal": {"AWS": "*"},
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::{{ bucket }}/*"
+      }]}{% else %}null{% endif %}
     versioning: "{{ versioning }}"
     encryption: "{{ encryption }}"
     region: "{{ region }}"
     tags: "{{ bucket_tags }}"
 - name: S3 CORS "{{ bucket }}"
   when: "'.' in bucket"
-  community.aws.aws_s3_cors:
+  community.aws.s3_cors:
     state: present
     name: "{{ bucket }}"
     rules:
       - allowed_origins:
-        - '*'
+          - '*'
         allowed_methods:
-        - GET
+          - GET
         allowed_headers:
-        - Authorization
+          - Authorization
         max_age_seconds: 3000
 - name: S3 lifecycle "{{ bucket }}"
-  when: versioning and (transition_days or transition_days or noncurrent_version_transition_days or noncurrent_version_expiration_days)
+  when: |
+    versioning and
+    (transition_days or transition_days or noncurrent_version_transition_days or noncurrent_version_expiration_days)
   community.aws.s3_lifecycle:
     state: present
     status: enabled
