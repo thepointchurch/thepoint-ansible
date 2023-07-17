@@ -199,8 +199,8 @@
         secret_key:
           file: "/etc/secrets/secret_key_{{ shortname }}.txt"
   notify:
-    - "Django {{ shortname }} collectstatic"
-    - "Django {{ shortname }} migrate"
+    - "Django collectstatic {{ shortname }}"
+    - "Django migrate {{ shortname }}"
 - name: setvar
   ansible.builtin.set_fact:
     frontend_nets: "{{ frontend_nets + ['frontend_' + shortname] }}"  # noqa: var-naming[no-role-prefix]
