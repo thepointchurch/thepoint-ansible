@@ -99,7 +99,7 @@
 - name: LetsEncrypt Register
   ansible.builtin.command:
     cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' \
-          certbot/dns-cloudflare{{ certbot_tag }}t register -n --agree-tos"
+          certbot/dns-cloudflare{{ certbot_tag }} register -n --agree-tos"
     creates: "/data/acme/accounts/acme-v02.api.letsencrypt.org/directory/*/private_key.json"
 - name: LetsEncrypt Deploy Hook
   ansible.builtin.copy:
