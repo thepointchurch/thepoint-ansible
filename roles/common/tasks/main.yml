@@ -103,6 +103,12 @@
     owner: root
     group: root
     mode: 0644
+- name: Install cron
+  ansible.builtin.apt:
+    pkg:
+      - cron
+    state: present
+    force: yes
 - name: Configure Syslog format
   ansible.builtin.lineinfile:
     state: present

@@ -1,7 +1,7 @@
 ---
 aws_region: us-west-2
 aws_instance_type: t4g.small
-aws_image: ami-01d674d7a205b2907
+aws_image: ami-0cf467cdd983a5859
 ssh_ipv6: 2001:44b8:2123:7b00::/56
 net_ipv4: 172.31.0.0/16
 subnet_ipv4: 172.31.32.0/20
