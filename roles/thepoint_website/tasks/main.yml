@@ -94,6 +94,7 @@
             - CHOWN
             - SETGID
             - SETUID
+            - DAC_OVERRIDE
           sysctls:
             net.core.somaxconn: 512
           read_only: true
