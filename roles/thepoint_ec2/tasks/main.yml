@@ -10,7 +10,6 @@
       - proto: tcp
         from_port: 443
         to_port: 443
-        cidr_ip: 0.0.0.0/0
         cidr_ipv6: ::/0
       - proto: tcp
         from_port: 22
@@ -195,15 +194,3 @@
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
   loop: "{{ thepoint_ec2_instance.instances[0].network_interfaces[0].ipv6_addresses }}"
-- name: Cloudflare DNS IPv4
-  when: thepoint_ec2_instance["instances"]|default() and thepoint_ec2_instance.instances[0].public_ip_address|default()
-  community.general.cloudflare_dns:
-    state: present
-    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
-    type: A
-    record: "{{ hostname.split('.')[0] }}"
-    value: "{{ thepoint_ec2_instance.instances[0].public_ip_address }}"
-    proxied: no
-    solo: yes
-    account_email: "{{ cloudflare_email }}"
-    account_api_token: "{{ cloudflare_token }}"
