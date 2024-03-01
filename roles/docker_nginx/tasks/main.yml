@@ -15,13 +15,13 @@
     mode: 0644
   notify:
     - nginx_reload
-- name: NGINX Compose
-  community.general.docker_compose:
-    project_name: NGINX
-    state: present
-    pull: yes
-    definition:
-      version: '3.1'
+- name: NGINX Compose Configuration
+  ansible.builtin.copy:
+    dest: /data/compose-nginx.yaml
+    owner: root
+    group: root
+    mode: 0644
+    content: |
       services:
         nginx:
           image: nginx:alpine
@@ -50,5 +50,12 @@
           tmpfs:
             - /var/cache/nginx
             - /docker-entrypoint.d
-          networks: "{{ frontend_nets }}"
-      networks: "{{ frontend_nets | process_frontend_nets }}"
+          networks: {{ frontend_nets }}
+      networks: {{ frontend_nets | process_frontend_nets }}
+- name: NGINX Compose
+  community.docker.docker_compose_v2:
+    project_name: nginx
+    state: present
+    pull: always
+    project_src: /data
+    files: compose-nginx.yaml

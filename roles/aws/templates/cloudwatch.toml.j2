@@ -1,0 +1,77 @@
+[agent]
+  collection_jitter = "0s"
+  debug = false
+  flush_interval = "1s"
+  flush_jitter = "0s"
+  hostname = ""
+  interval = "60s"
+  logfile = "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log"
+  logtarget = "lumberjack"
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  omit_hostname = false
+  precision = ""
+  quiet = false
+  round_interval = false
+
+[inputs]
+
+  [[inputs.cpu]]
+    fieldpass = ["usage_idle", "usage_iowait", "usage_user", "usage_system"]
+    interval = "60s"
+    percpu = false
+    totalcpu = true
+
+  [[inputs.disk]]
+    fieldpass = ["used_percent", "inodes_free"]
+    interval = "60s"
+    tagexclude = ["mode"]
+
+  [[inputs.diskio]]
+    fieldpass = ["io_time", "write_bytes", "read_bytes", "writes", "reads"]
+    interval = "60s"
+
+  [[inputs.logfile]]
+    destination = "cloudwatchlogs"
+    file_state_folder = "/opt/aws/amazon-cloudwatch-agent/logs/state"
+
+    [[inputs.logfile.file_config]]
+      file_path = "/var/log/messages"
+      from_beginning = true
+      log_group_class = ""
+      log_group_name = "thepoint-web"
+      log_stream_name = "{{ ansible_hostname }}_messages"
+      pipe = false
+      retention_in_days = -1
+
+    [[inputs.logfile.file_config]]
+      file_path = "/var/log/auth.log"
+      from_beginning = true
+      log_group_class = ""
+      log_group_name = "thepoint-web"
+      log_stream_name = "{{ ansible_hostname }}_auth"
+      pipe = false
+      retention_in_days = -1
+
+  [[inputs.mem]]
+    fieldpass = ["used_percent"]
+    interval = "60s"
+
+  [[inputs.netstat]]
+    fieldpass = ["tcp_established", "tcp_time_wait"]
+    interval = "60s"
+
+  [[inputs.swap]]
+    fieldpass = ["used_percent"]
+    interval = "60s"
+
+[outputs]
+
+  [[outputs.cloudwatch]]
+
+  [[outputs.cloudwatchlogs]]
+    force_flush_interval = "5s"
+    log_stream_name = "{{ ansible_hostname }}"
+    mode = "EC2"
+    region = "{{ aws_region }}"
+    region_type = "EC2M"

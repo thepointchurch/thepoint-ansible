@@ -30,17 +30,31 @@
     src: /etc/aws
     dest: /root/.aws
     mode: 0755
+- name: Download SSM Agent
+  ansible.builtin.get_url:
+    url: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ssm-{{ aws_region }}\
+      /latest/debian_{{ architecture }}/amazon-ssm-agent.deb"
+    dest: /root/amazon-ssm-agent.deb
+    owner: root
+    group: root
+    mode: 0644
+    force: false
 - name: Install SSM Agent
   ansible.builtin.apt:
-    deb: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ssm-{{ aws_region }}\
-      /latest/debian_{{ architecture }}/amazon-ssm-agent.deb"
+    deb: /root/amazon-ssm-agent.deb
     state: present
-    force: yes
+- name: Download SSM Agent
+  ansible.builtin.get_url:
+    url: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/{{ architecture }}/latest/amazon-cloudwatch-agent.deb"
+    dest: /root/amazon-cloudwatch-agent.deb
+    owner: root
+    group: root
+    mode: 0644
+    force: false
 - name: Install Cloudwatch Agent
   ansible.builtin.apt:
-    deb: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/{{ architecture }}/latest/amazon-cloudwatch-agent.deb"
+    deb: /root/amazon-cloudwatch-agent.deb
     state: present
-    force: yes
 - name: Cloudwatch Agent User
   ansible.builtin.user:
     name: cwagent
@@ -48,8 +62,17 @@
     append: yes
 - name: Configure Cloudwatch Agent
   ansible.builtin.template:
-    src: cloudwatch.json
-    dest: "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json"
+    src: cloudwatch.toml.j2
+    dest: "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.toml"
+    owner: cwagent
+    group: cwagent
+    mode: 0644
+  notify:
+    - restart_cloudwatch
+- name: Configure Cloudwatch Agent Telemetry
+  ansible.builtin.template:
+    src: cloudwatch.yaml.j2
+    dest: "/opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.yaml"
     owner: cwagent
     group: cwagent
     mode: 0644

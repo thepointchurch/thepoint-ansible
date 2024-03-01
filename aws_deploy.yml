@@ -35,7 +35,7 @@
       description: The Point
       vhost: thepoint.org.au www.thepoint.org.au
       secret_key: "{{ prod_secret_key }}"
-      cache_url: redis://cache:6379
+      cache_url: redis://cache_prod:6379
       cache_timeout: 21600
       cache_ops: true
       static_bucket: static.thepoint.org.au

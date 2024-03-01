@@ -47,7 +47,7 @@
 
 
 - name: IAM role EC2
-  community.aws.iam_role:
+  amazon.aws.iam_role:
     state: present
     purge_policies: true
     assume_role_policy_document:
@@ -58,6 +58,10 @@
           Sid: ''
           Principal:
             Service: 'ec2.amazonaws.com'
+    managed_policies:
+      - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      - arn:aws:iam::aws:policy/AmazonSSMPatchAssociation
+      - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
     name: DjangoSite
   register: thepoint_ec2_django_role
 - name: IAM policy EC2
@@ -167,6 +171,10 @@
           volume_size: "{{ volume_size }}"
           encrypted: yes
     termination_protection: yes
+    metadata_options:
+      http_put_response_hop_limit: 2
+      http_protocol_ipv6: true
+      http_tokens: required
     user_data: |
       #cloud-config
       apt_upgrade: true

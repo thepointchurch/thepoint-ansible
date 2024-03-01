@@ -30,11 +30,25 @@
     mode: 0644
   notify:
     - transparent_hugepage
+- name: Docker Repository Key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/trusted.gpg.d/docker.asc
+    owner: root
+    group: root
+    mode: 0644
+- name: Docker Repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
 - name: Install Docker
   ansible.builtin.apt:
     pkg:
-      - docker.io
-      - docker-compose
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
       - python3-docker
     state: present
     force: yes
@@ -73,6 +87,28 @@
     owner: root
     group: root
     mode: 0600
+- name: Docker Daemon config
+  ansible.builtin.copy:
+    content: |
+      {
+          "ipv6": true,
+          "fixed-cidr-v6": "fd00:1::/64",
+          "experimental": true,
+          "ip6tables": true,
+          "default-address-pools": [
+              { "base": "172.17.0.0/16", "size": 16 },
+              { "base": "172.18.0.0/16", "size": 16 },
+              { "base": "172.19.0.0/16", "size": 16 },
+              { "base": "172.20.0.0/14", "size": 16 },
+              { "base": "172.24.0.0/14", "size": 16 },
+              { "base": "192.168.0.0/16", "size": 20 },
+              { "base": "fd00:2::/104", "size": 112 }
+          ]
+      }
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: 0644
 - name: Create Docker secrets directory
   ansible.builtin.file:
     state: directory

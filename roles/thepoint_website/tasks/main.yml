@@ -37,7 +37,7 @@
     mode: 0644
 - name: "Secret: DB URL : {{ shortname }}"
   ansible.builtin.copy:
-    content: "psql://thepoint:{{ db_password }}@db:5432/thepoint"
+    content: "psql://thepoint:{{ db_password }}@db_{{ shortname }}:5432/thepoint"
     dest: "/etc/secrets/db_url_{{ shortname }}.txt"
     owner: root
     group: root
@@ -52,9 +52,11 @@
 - name: "Docker Frontend Network : {{ shortname }}"
   community.general.docker_network:
     name: "frontend_{{ shortname }}"
+    enable_ipv6: true
 - name: "Docker Backend Network : {{ shortname }}"
   community.general.docker_network:
     name: "backend_{{ shortname }}"
+    enable_ipv6: true
 - name: "Redis Configuration : {{ shortname }}"
   ansible.builtin.copy:
     content: |
@@ -65,14 +67,13 @@
     owner: root
     group: root
     mode: 0644
-- name: "Redis Compose : {{ shortname }}"
-  when: cache_url is match("redis:")
-  community.general.docker_compose:
-    project_name: "redis_{{ shortname }}"
-    state: present
-    pull: yes
-    definition:
-      version: '3.1'
+- name: "Redis Compose Configuration : {{ shortname }}"
+  ansible.builtin.copy:
+    dest: "/data/compose-redis-{{ shortname }}.yaml"
+    owner: root
+    group: root
+    mode: 0644
+    content: |
       services:
         cache:
           image: redis:alpine
@@ -102,15 +103,23 @@
             - backend
       networks:
         backend:
-          external:
-            name: "backend_{{ shortname }}"
-- name: "The Point Compose : {{ shortname }}"
-  community.general.docker_compose:
-    project_name: "{{ description }}"
+          external: true
+          name: "backend_{{ shortname }}"
+- name: "Redis Compose : {{ shortname }}"
+  when: cache_url is match("redis:")
+  community.docker.docker_compose_v2:
+    project_name: "redis_{{ shortname }}"
     state: present
-    pull: yes
-    definition:
-      version: '3.1'
+    pull: always
+    project_src: /data
+    files: "compose-redis-{{ shortname }}.yaml"
+- name: "The Point Compose Configuration : {{ shortname }}"
+  ansible.builtin.copy:
+    dest: "/data/compose-thepoint-{{ shortname }}.yaml"
+    owner: root
+    group: root
+    mode: 0644
+    content: |
       services:
         db:
           image: postgres:15-alpine
@@ -161,6 +170,8 @@
             STATICFILES_BUCKET: "{{ static_bucket }}"
             EMAIL_BACKEND: "{{ email_backend }}"
             AWS_DEFAULT_REGION: "{{ aws_region }}"
+            AWS_EC2_METADATA_V1_DISABLED: 'true'
+            AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE: IPv6
             VHOST: "{{ vhost }} localhost"
           restart: unless-stopped
           secrets:
@@ -187,11 +198,11 @@
                 - "django_{{ shortname }}"
       networks:
         backend:
-          external:
-            name: "backend_{{ shortname }}"
+          external: true
+          name: "backend_{{ shortname }}"
         frontend:
-          external:
-            name: "frontend_{{ shortname }}"
+          external: true
+          name: "frontend_{{ shortname }}"
       secrets:
         db_password:
           file: "/etc/secrets/db_password_{{ shortname }}.txt"
@@ -199,6 +210,13 @@
           file: "/etc/secrets/db_url_{{ shortname }}.txt"
         secret_key:
           file: "/etc/secrets/secret_key_{{ shortname }}.txt"
+- name: "The Point Compose : {{ shortname }}"
+  community.docker.docker_compose_v2:
+    project_name: "thepoint_{{ shortname }}"
+    state: present
+    pull: always
+    project_src: /data
+    files: "compose-thepoint-{{ shortname }}.yaml"
   notify:
     - "Django collectstatic {{ shortname }}"
     - "Django migrate {{ shortname }}"
