@@ -3,3 +3,7 @@
   ansible.builtin.service:
     name: amazon-cloudwatch-agent
     state: restarted
+- name: restart_ssm
+  ansible.builtin.service:
+    name: amazon-ssm-agent
+    state: restarted
