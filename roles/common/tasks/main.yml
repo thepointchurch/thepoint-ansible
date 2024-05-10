@@ -46,6 +46,15 @@
     group: root
     mode: 0644
   notify: reload_journald
+- name: Configure ResolveD
+  ansible.builtin.copy:
+    content: |
+      [Resolve]
+      LLMNR=no
+    dest: /etc/systemd/resolved.conf
+    owner: root
+    group: root
+    mode: 0644
 - name: Install chrony
   ansible.builtin.apt:
     pkg:
