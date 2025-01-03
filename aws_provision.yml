@@ -24,6 +24,8 @@
       role: s3_storage
       bucket: static.thepoint.org.au
       public: true
+      encryption: AES256
+      bucket_key_enabled: true
       bucket_tags:
         type: website
         website: thepoint
@@ -43,6 +45,8 @@
       role: s3_storage
       bucket: static-test.thepoint.org.au
       public: true
+      encryption: AES256
+      bucket_key_enabled: true
       bucket_tags:
         type: website
         website: thepoint
