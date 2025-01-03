@@ -1,25 +1,25 @@
 ---
-- name: S3 bucket "{{ bucket }}"
+- name: S3 bucket "{{ s3_storage_bucket }}"
   amazon.aws.s3_bucket:
     state: present
-    name: "{{ bucket }}"
+    name: "{{ s3_storage_bucket }}"
     policy: >
-      {% if public or website %}{"Version": "2008-10-17", "Statement": [{
+      {% if s3_storage_public or s3_storage_website %}{"Version": "2008-10-17", "Statement": [{
       "Sid": "",
       "Effect": "Allow",
       "Principal": {"AWS": "*"},
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::{{ bucket }}/*"
+      "Resource": "arn:aws:s3:::{{ s3_storage_bucket }}/*"
       }]}{% else %}null{% endif %}
-    versioning: "{{ versioning }}"
-    encryption: "{{ encryption }}"
-    region: "{{ region }}"
-    tags: "{{ bucket_tags }}"
-- name: S3 CORS "{{ bucket }}"
-  when: "'.' in bucket"
+    versioning: "{{ s3_storage_versioning }}"
+    encryption: "{{ s3_storage_encryption }}"
+    region: "{{ s3_storage_region }}"
+    tags: "{{ s3_storage_bucket_tags }}"
+- name: S3 CORS "{{ s3_storage_bucket }}"
+  when: "'.' in s3_storage_bucket"
   community.aws.s3_cors:
     state: present
-    name: "{{ bucket }}"
+    name: "{{ s3_storage_bucket }}"
     rules:
       - allowed_origins:
           - '*'
@@ -28,34 +28,35 @@
         allowed_headers:
           - Authorization
         max_age_seconds: 3000
-- name: S3 lifecycle "{{ bucket }}"
+- name: S3 lifecycle "{{ s3_storage_bucket }}"
   when: |
-    versioning and
-    (transition_days or transition_days or noncurrent_version_transition_days or noncurrent_version_expiration_days)
+    s3_storage_versioning and
+    (transition_days or transition_days or
+     s3_storage_noncurrent_version_transition_days or s3_storage_noncurrent_version_expiration_days)
   community.aws.s3_lifecycle:
     state: present
     status: enabled
-    name: "{{ bucket }}"
+    name: "{{ s3_storage_bucket }}"
     rule_id: StandardLifecycle
-    storage_class: "{{ storage_class }}"
-    transition_days: "{{ transition_days }}"
-    expiration_days: "{{ expiration_days }}"
-    noncurrent_version_storage_class: "{{ storage_class }}"
-    noncurrent_version_transition_days: "{{ noncurrent_version_transition_days }}"
-    noncurrent_version_expiration_days: "{{ noncurrent_version_expiration_days }}"
-- name: S3 website "{{ bucket }}"
-  when: website
+    storage_class: "{{ s3_storage_storage_class }}"
+    transition_days: "{{ s3_storage_transition_days }}"
+    expiration_days: "{{ s3_storage_expiration_days }}"
+    noncurrent_version_storage_class: "{{ s3_storage_storage_class }}"
+    noncurrent_version_transition_days: "{{ s3_storage_noncurrent_version_transition_days }}"
+    noncurrent_version_expiration_days: "{{ s3_storage_noncurrent_version_expiration_days }}"
+- name: S3 website "{{ s3_storage_bucket }}"
+  when: s3_storage_website
   community.aws.s3_website:
     state: present
-    name: "{{ bucket }}"
-- name: Cloudflare "{{ bucket }}"
-  when: "'.' in bucket"
+    name: "{{ s3_storage_bucket }}"
+- name: Cloudflare "{{ s3_storage_bucket }}"
+  when: "'.' in s3_storage_bucket"
   community.general.cloudflare_dns:
     state: present
-    zone: "{{ '.'.join(bucket.split('.')[1:]) }}"
+    zone: "{{ '.'.join(s3_storage_bucket.split('.')[1:]) }}"
     type: CNAME
-    record: "{{ bucket.split('.')[0] }}"
-    value: "{{ bucket }}.s3{% if website %}-website{% endif %}-{{ aws_region }}.amazonaws.com"
+    record: "{{ s3_storage_bucket.split('.')[0] }}"
+    value: "{{ s3_storage_bucket }}.s3{% if s3_storage_website %}-website{% endif %}-{{ aws_region }}.amazonaws.com"
     proxied: yes
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"

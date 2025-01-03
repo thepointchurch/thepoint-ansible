@@ -1,5 +1,5 @@
 ---
-aws_region: us-west-2
-aws_instance_type: t2.micro
-aws_image: ami-07fd151b9eb3b7264
-volume_size: 4
+thepoint_ec2_aws_region: us-west-2
+thepoint_ec2_aws_instance_type: t2.micro
+thepoint_ec2_aws_image: ami-07fd151b9eb3b7264
+thepoint_ec2_volume_size: 4

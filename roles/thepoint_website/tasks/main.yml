@@ -1,14 +1,14 @@
 ---
-- name: "NGINX config : {{ shortname }}"
+- name: "NGINX config : {{ thepoint_website_shortname }}"
   ansible.builtin.template:
     src: nginx.conf
-    dest: "/etc/nginx/{{ shortname }}.conf"
+    dest: "/etc/nginx/{{ thepoint_website_shortname }}.conf"
     owner: root
     group: root
     mode: 0644
   notify:
     - nginx_reload
-- name: "Cloudflare DNS : {{ shortname }}"
+- name: "Cloudflare DNS : {{ thepoint_website_shortname }}"
   when:
     - cloudflare_email is defined
     - cloudflare_token is defined
@@ -22,42 +22,42 @@
     proxied: yes
     account_email: "{{ cloudflare_email }}"
     account_api_token: "{{ cloudflare_token }}"
-  with_items: "{{ vhost.split(' ') }}"
-- name: "LetsEncrypt Certificate : {{ shortname }}"
+  with_items: "{{ thepoint_website_vhost.split(' ') }}"
+- name: "LetsEncrypt Certificate : {{ thepoint_website_shortname }}"
   ansible.builtin.command:
     cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' certbot/dns-cloudflare{{ certbot_tag }} \
-      certonly -n {% for n in vhost.split(' ') %} -d {{ n }}{% endfor %}"
-    creates: "/data/acme/live/{{ vhost.split(' ')[0] }}/fullchain.pem"
-- name: "Secret: DB Password : {{ shortname }}"
+      certonly -n {% for n in thepoint_website_vhost.split(' ') %} -d {{ n }}{% endfor %}"
+    creates: "/data/acme/live/{{ thepoint_website_vhost.split(' ')[0] }}/fullchain.pem"
+- name: "Secret: DB Password : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
-    content: "{{ db_password }}"
-    dest: "/etc/secrets/db_password_{{ shortname }}.txt"
+    content: "{{ thepoint_website_db_password }}"
+    dest: "/etc/secrets/db_password_{{ thepoint_website_shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: "Secret: DB URL : {{ shortname }}"
+- name: "Secret: DB URL : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
-    content: "psql://thepoint:{{ db_password }}@db_{{ shortname }}:5432/thepoint"
-    dest: "/etc/secrets/db_url_{{ shortname }}.txt"
+    content: "psql://thepoint:{{ thepoint_website_db_password }}@db_{{ thepoint_website_shortname }}:5432/thepoint"
+    dest: "/etc/secrets/db_url_{{ thepoint_website_shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: "Secret Key : {{ shortname }}"
+- name: "Secret Key : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
-    content: "{{ secret_key }}"
-    dest: "/etc/secrets/secret_key_{{ shortname }}.txt"
+    content: "{{ thepoint_website_secret_key }}"
+    dest: "/etc/secrets/secret_key_{{ thepoint_website_shortname }}.txt"
     owner: root
     group: root
     mode: 0644
-- name: "Docker Frontend Network : {{ shortname }}"
+- name: "Docker Frontend Network : {{ thepoint_website_shortname }}"
   community.general.docker_network:
-    name: "frontend_{{ shortname }}"
+    name: "frontend_{{ thepoint_website_shortname }}"
     enable_ipv6: true
-- name: "Docker Backend Network : {{ shortname }}"
+- name: "Docker Backend Network : {{ thepoint_website_shortname }}"
   community.general.docker_network:
-    name: "backend_{{ shortname }}"
+    name: "backend_{{ thepoint_website_shortname }}"
     enable_ipv6: true
-- name: "Redis Configuration : {{ shortname }}"
+- name: "Redis Configuration : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
     content: |
       appendonly yes
@@ -67,9 +67,9 @@
     owner: root
     group: root
     mode: 0644
-- name: "Redis Compose Configuration : {{ shortname }}"
+- name: "Redis Compose Configuration : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
-    dest: "/data/compose-redis-{{ shortname }}.yaml"
+    dest: "/data/compose-redis-{{ thepoint_website_shortname }}.yaml"
     owner: root
     group: root
     mode: 0644
@@ -77,17 +77,17 @@
       services:
         cache:
           image: redis:alpine
-          container_name: "cache_{{ shortname }}"
+          container_name: "cache_{{ thepoint_website_shortname }}"
           command: ["redis-server", "/etc/redis.conf"]
           restart: unless-stopped
           volumes:
             - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
             - "/etc/redis.conf:/etc/redis.conf:ro"
-            - "/data/redis_{{ shortname }}:/data"
+            - "/data/redis_{{ thepoint_website_shortname }}:/data"
           logging:
             driver: awslogs
             options:
-              awslogs-group: "{{ log_group }}"
+              awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: redis
           cap_drop:
             - ALL
@@ -104,18 +104,18 @@
       networks:
         backend:
           external: true
-          name: "backend_{{ shortname }}"
-- name: "Redis Compose : {{ shortname }}"
-  when: cache_url is match("redis:")
+          name: "backend_{{ thepoint_website_shortname }}"
+- name: "Redis Compose : {{ thepoint_website_shortname }}"
+  when: thepoint_website_cache_url is match("redis:")
   community.docker.docker_compose_v2:
-    project_name: "redis_{{ shortname }}"
+    project_name: "redis_{{ thepoint_website_shortname }}"
     state: present
     pull: always
     project_src: /data
-    files: "compose-redis-{{ shortname }}.yaml"
-- name: "The Point Compose Configuration : {{ shortname }}"
+    files: "compose-redis-{{ thepoint_website_shortname }}.yaml"
+- name: "The Point Compose Configuration : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
-    dest: "/data/compose-thepoint-{{ shortname }}.yaml"
+    dest: "/data/compose-thepoint-{{ thepoint_website_shortname }}.yaml"
     owner: root
     group: root
     mode: 0644
@@ -123,7 +123,7 @@
       services:
         db:
           image: postgres:15-alpine
-          container_name: "db_{{ shortname }}"
+          container_name: "db_{{ thepoint_website_shortname }}"
           environment:
             POSTGRES_USER: thepoint
             POSTGRES_PASSWORD_FILE: /run/secrets/db_password
@@ -133,11 +133,11 @@
             - db_password
           volumes:
             - /usr/share/zoneinfo/Australia/Brisbane:/etc/localtime:ro
-            - "/data/postgres_{{ shortname }}:/var/lib/postgresql/data"
+            - "/data/postgres_{{ thepoint_website_shortname }}:/var/lib/postgresql/data"
           logging:
             driver: awslogs
             options:
-              awslogs-group: "{{ log_group }}"
+              awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: postgres
           cap_drop:
             - ALL
@@ -154,25 +154,25 @@
           networks:
             - backend
         django:
-          image: "{{ docker_image }}"
-          container_name: "django_{{ shortname }}"
+          image: "{{ thepoint_website_docker_image }}"
+          container_name: "django_{{ thepoint_website_shortname }}"
           environment:
-            DJANGO_SETTINGS_MODULE: "{{ settings }}"
+            DJANGO_SETTINGS_MODULE: "{{ thepoint_website_settings }}"
             SECRET_KEY_FILE: /run/secrets/secret_key
-            GUNICORN_CMD_ARGS: "--workers={{ workers }} --threads={{ threads }}"
+            GUNICORN_CMD_ARGS: "--workers={{ thepoint_website_workers }} --threads={{ thepoint_website_threads }}"
             DATABASE_URL_FILE: /run/secrets/db_url
-            DEBUG: "{% if debug %}on{% endif %}"
-            CACHE_URL: "{{ cache_url }}"
-            CACHE_TIMEOUT: "{{ cache_timeout }}"
-            CACHEOPS_ENABLED: "{% if cache_ops %}on{% endif %}"
-            MEDIAFILES_BUCKET: "{{ media_bucket }}"
-            MEDIAFILES_ENCRYPTED: "{% if media_encrypted %}on{% endif %}"
-            STATICFILES_BUCKET: "{{ static_bucket }}"
-            EMAIL_BACKEND: "{{ email_backend }}"
+            DEBUG: "{% if thepoint_website_debug %}on{% endif %}"
+            CACHE_URL: "{{ thepoint_website_cache_url }}"
+            CACHE_TIMEOUT: "{{ thepoint_website_cache_timeout }}"
+            CACHEOPS_ENABLED: "{% if thepoint_website_cache_ops %}on{% endif %}"
+            MEDIAFILES_BUCKET: "{{ thepoint_website_media_bucket }}"
+            MEDIAFILES_ENCRYPTED: "{% if thepoint_website_media_encrypted %}on{% endif %}"
+            STATICFILES_BUCKET: "{{ thepoint_website_static_bucket }}"
+            EMAIL_BACKEND: "{{ thepoint_website_email_backend }}"
             AWS_DEFAULT_REGION: "{{ aws_region }}"
             AWS_EC2_METADATA_V1_DISABLED: 'true'
             AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE: IPv6
-            VHOST: "{{ vhost }} localhost"
+            VHOST: "{{ thepoint_website_vhost }} localhost"
           restart: unless-stopped
           secrets:
             - db_url
@@ -183,7 +183,7 @@
           logging:
             driver: awslogs
             options:
-              awslogs-group: "{{ log_group }}"
+              awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: django
           cap_drop:
             - ALL
@@ -195,37 +195,37 @@
             backend:
             frontend:
               aliases:
-                - "django_{{ shortname }}"
+                - "django_{{ thepoint_website_shortname }}"
       networks:
         backend:
           external: true
-          name: "backend_{{ shortname }}"
+          name: "backend_{{ thepoint_website_shortname }}"
         frontend:
           external: true
-          name: "frontend_{{ shortname }}"
+          name: "frontend_{{ thepoint_website_shortname }}"
       secrets:
         db_password:
-          file: "/etc/secrets/db_password_{{ shortname }}.txt"
+          file: "/etc/secrets/db_password_{{ thepoint_website_shortname }}.txt"
         db_url:
-          file: "/etc/secrets/db_url_{{ shortname }}.txt"
+          file: "/etc/secrets/db_url_{{ thepoint_website_shortname }}.txt"
         secret_key:
-          file: "/etc/secrets/secret_key_{{ shortname }}.txt"
-- name: "The Point Compose : {{ shortname }}"
+          file: "/etc/secrets/secret_key_{{ thepoint_website_shortname }}.txt"
+- name: "The Point Compose : {{ thepoint_website_shortname }}"
   community.docker.docker_compose_v2:
-    project_name: "thepoint_{{ shortname }}"
+    project_name: "thepoint_{{ thepoint_website_shortname }}"
     state: present
     pull: always
     project_src: /data
-    files: "compose-thepoint-{{ shortname }}.yaml"
+    files: "compose-thepoint-{{ thepoint_website_shortname }}.yaml"
   notify:
-    - "Django collectstatic {{ shortname }}"
-    - "Django migrate {{ shortname }}"
+    - "Django collectstatic {{ thepoint_website_shortname }}"
+    - "Django migrate {{ thepoint_website_shortname }}"
 - name: setvar
   ansible.builtin.set_fact:
-    frontend_nets: "{{ frontend_nets + ['frontend_' + shortname] }}"  # noqa: var-naming[no-role-prefix]
-- name: "Crontab : {{ shortname }}"
+    thepoint_website_frontend_nets: "{{ thepoint_website_frontend_nets + ['frontend_' + thepoint_website_shortname] }}"
+- name: "Crontab : {{ thepoint_website_shortname }}"
   ansible.builtin.lineinfile:
-    state: "{% if cron %}present{% else %}absent{% endif %}"
+    state: "{% if thepoint_website_cron %}present{% else %}absent{% endif %}"
     dest: /etc/docker.crontab
     create: yes
     owner: root
@@ -234,11 +234,11 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
   loop:
-    - line: "0 14 * * * docker exec django_{{ shortname }} upperroom-sendrosteremails"
-      regexp: " docker exec django_{{ shortname }} upperroom-sendrosteremails"
+    - line: "0 14 * * * docker exec django_{{ thepoint_website_shortname }} upperroom-sendrosteremails"
+      regexp: " docker exec django_{{ thepoint_website_shortname }} upperroom-sendrosteremails"
   notify:
     - runner_restart
-- name: "Crontab : {{ shortname }}"
+- name: "Crontab : {{ thepoint_website_shortname }}"
   ansible.builtin.lineinfile:
     state: present
     dest: /etc/docker.crontab
@@ -246,11 +246,11 @@
     owner: root
     group: root
     mode: 0644
-    line: "0 3 * * * docker exec django_{{ shortname }} upperroom clearsessions"
-    regexp: " docker exec django_{{ shortname }} upperroom clearsessions"
+    line: "0 3 * * * docker exec django_{{ thepoint_website_shortname }} upperroom clearsessions"
+    regexp: " docker exec django_{{ thepoint_website_shortname }} upperroom clearsessions"
   notify:
     - runner_restart
-- name: "Install backup scripts : {{ shortname }}"
+- name: "Install backup scripts : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: /usr/local/bin
@@ -260,10 +260,12 @@
   with_items:
     - upperroom-backup.sh
     - upperroom-restore.sh
-- name: "Backup : {{ shortname }}"
-  when: backup_bucket != ""
+- name: "Backup : {{ thepoint_website_shortname }}"
+  when: thepoint_website_backup_bucket != ""
   ansible.builtin.cron:
-    name: "{{ shortname }}_backup"
-    job: /usr/local/bin/upperroom-backup.sh "db_{{ shortname }}" "{{ media_bucket }}" "{{ backup_bucket }}"
+    name: "{{ thepoint_website_shortname }}_backup"
+    job: >-
+      /usr/local/bin/upperroom-backup.sh "db_{{ thepoint_website_shortname }}" "{{ thepoint_website_media_bucket }}"
+      "{{ thepoint_website_backup_bucket }}"
     hour: "22"
     minute: "0"

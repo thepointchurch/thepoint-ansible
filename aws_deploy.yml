@@ -11,42 +11,42 @@
 
     # Test website
 
-    - test:
+    - thepoint_website_test:
       role: thepoint_website
-      shortname: test
-      description: The Point Test
-      vhost: test.thepoint.org.au
-      debug: true
-      cron: false
-      workers: 1
-      threads: 2
-      secret_key: "{{ test_secret_key }}"
-      static_bucket: static-test.thepoint.org.au
-      media_bucket: thepoint-media-test
-      docker_image: ghcr.io/thepointchurch/thepoint/thepoint:testing
-      email_backend: django.core.mail.backends.console.EmailBackend
-      log_group: "{{ cw_group_test }}"
+      thepoint_website_shortname: test
+      thepoint_website_description: The Point Test
+      thepoint_website_vhost: test.thepoint.org.au
+      thepoint_website_debug: true
+      thepoint_website_cron: false
+      thepoint_website_workers: 1
+      thepoint_website_threads: 2
+      thepoint_website_secret_key: "{{ test_secret_key }}"
+      thepoint_website_static_bucket: static-test.thepoint.org.au
+      thepoint_website_media_bucket: thepoint-media-test
+      thepoint_website_docker_image: ghcr.io/thepointchurch/thepoint/thepoint:testing
+      thepoint_website_email_backend: django.core.mail.backends.console.EmailBackend
+      thepoint_website_log_group: "{{ cw_group_test }}"
 
     # Production website
 
-    - prod:
+    - thepoint_website_prod:
       role: thepoint_website
-      shortname: prod
-      description: The Point
-      vhost: thepoint.org.au www.thepoint.org.au
-      secret_key: "{{ prod_secret_key }}"
-      cache_url: redis://cache_prod:6379
-      cache_timeout: 21600
-      cache_ops: true
-      static_bucket: static.thepoint.org.au
-      media_bucket: thepoint-media
-      backup_bucket: thepoint-backup
-      log_group: "{{ cw_group_prod }}"
-      email_backend: django_amazon_ses.EmailBackend
+      thepoint_website_shortname: prod
+      thepoint_website_description: The Point
+      thepoint_website_vhost: thepoint.org.au www.thepoint.org.au
+      thepoint_website_secret_key: "{{ prod_secret_key }}"
+      thepoint_website_cache_url: redis://cache_prod:6379
+      thepoint_website_cache_timeout: 21600
+      thepoint_website_cache_ops: true
+      thepoint_website_static_bucket: static.thepoint.org.au
+      thepoint_website_media_bucket: thepoint-media
+      thepoint_website_backup_bucket: thepoint-backup
+      thepoint_website_log_group: "{{ cw_group_prod }}"
+      thepoint_website_email_backend: django_amazon_ses.EmailBackend
 
-    - nginx:
+    - docker_nginx_instance:
       role: docker_nginx
-      log_group: "{{ cw_group_prod }}"
-    - runner:
+      docker_nginx_log_group: "{{ cw_group_prod }}"
+    - docker_runner_instance:
       role: docker_runner
-      log_group: "{{ cw_group_prod }}"
+      docker_runner_log_group: "{{ cw_group_prod }}"

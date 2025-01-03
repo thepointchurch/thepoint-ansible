@@ -1,2 +1,2 @@
 ---
-log_group: thepoint
+docker_runner_log_group: thepoint

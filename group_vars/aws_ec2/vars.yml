@@ -5,6 +5,6 @@ root_mail: admin@thepoint.org.au
 root_from: admin@thepoint.org.au
 smtp_relay: "email-smtp.{{ ansible_ec2_placement_region }}.amazonaws.com::587"
 smtp_relay_domain: amazonaws.com
-ntp_servers:
+common_ntp_servers:
   - fd00:ec2::123
 certbot_tag: "{{ ':arm64v8-latest' if architecture == 'arm64' else '' }}"

@@ -1,5 +1,5 @@
 ---
-filesystems:
+common_filesystems:
   sdb: /data
 cw_group_test: thepoint-test
 cw_group_prod: thepoint-web

@@ -42,7 +42,7 @@
       - /var/run/docker.sock:/var/run/docker.sock:ro
     log_driver: awslogs
     log_options:
-      awslogs-group: "{{ log_group }}"
+      awslogs-group: "{{ docker_runner_log_group }}"
       awslogs-stream: runner
     cap_drop:
       - ALL

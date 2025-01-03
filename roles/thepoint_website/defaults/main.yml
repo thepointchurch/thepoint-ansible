@@ -1,17 +1,17 @@
 ---
-vhost: "www.{{ ansible_domain }} {{ ansible_domain }}"
-workers: 3
-threads: 12
-db_password: '1234567890'
-debug: false
-docker_image: ghcr.io/thepointchurch/thepoint/thepoint:latest
-backup_bucket: ''
-email_backend: django_sendmail_backend.backends.EmailBackend
-cache_timeout: 300
-cache_url: 'dummycache://'
-cache_ops: false
-log_group: thepoint
-frontend_nets: []
-cron: true
-media_encrypted: true
-settings: thepoint.settings
+thepoint_website_vhost: "www.{{ ansible_domain }} {{ ansible_domain }}"
+thepoint_website_workers: 3
+thepoint_website_threads: 12
+thepoint_website_db_password: '1234567890'
+thepoint_website_debug: false
+thepoint_website_docker_image: ghcr.io/thepointchurch/thepoint/thepoint:latest
+thepoint_website_backup_bucket: ''
+thepoint_website_email_backend: django_sendmail_backend.backends.EmailBackend
+thepoint_website_cache_timeout: 300
+thepoint_website_cache_url: 'dummycache://'
+thepoint_website_cache_ops: false
+thepoint_website_log_group: thepoint
+thepoint_website_frontend_nets: []
+thepoint_website_cron: true
+thepoint_website_media_encrypted: true
+thepoint_website_settings: thepoint.settings

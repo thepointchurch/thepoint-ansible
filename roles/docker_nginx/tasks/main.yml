@@ -37,7 +37,7 @@
           logging:
             driver: awslogs
             options:
-              awslogs-group: "{{ log_group }}"
+              awslogs-group: "{{ docker_nginx_log_group }}"
               awslogs-stream: nginx
           cap_drop:
             - ALL
@@ -50,8 +50,8 @@
           tmpfs:
             - /var/cache/nginx
             - /docker-entrypoint.d
-          networks: {{ frontend_nets }}
-      networks: {{ frontend_nets | process_frontend_nets }}
+          networks: {{ thepoint_website_frontend_nets }}
+      networks: {{ thepoint_website_frontend_nets | process_frontend_nets }}
 - name: NGINX Compose
   community.docker.docker_compose_v2:
     project_name: nginx

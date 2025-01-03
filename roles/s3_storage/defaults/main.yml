@@ -1,11 +1,11 @@
 ---
-versioning: false
-website: false
-public: false
-encryption: aws:kms
-region: "{{ aws_region }}"
-storage_class: standard_ia
-transition_days: null
-expiration_days: null
-noncurrent_version_transition_days: null
-noncurrent_version_expiration_days: null
+s3_storage_versioning: false
+s3_storage_website: false
+s3_storage_public: false
+s3_storage_encryption: aws:kms
+s3_storage_region: "{{ aws_region }}"
+s3_storage_storage_class: standard_ia
+s3_storage_transition_days: null
+s3_storage_expiration_days: null
+s3_storage_noncurrent_version_transition_days: null
+s3_storage_noncurrent_version_expiration_days: null

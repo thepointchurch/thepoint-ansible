@@ -1,3 +1,2 @@
 ---
-log_group: thepoint
-frontend_nets: []
+docker_nginx_log_group: thepoint

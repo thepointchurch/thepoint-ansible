@@ -131,7 +131,7 @@
   community.general.filesystem:
     fstype: ext4
     dev: /dev/{{ item.key }}
-  with_dict: "{{ filesystems }}"
+  with_dict: "{{ common_filesystems }}"
 - name: Mount Filesystems
   ansible.posix.mount:
     state: mounted
@@ -140,4 +140,4 @@
     fstype: ext4
     opts: noatime
     passno: 2
-  with_dict: "{{ filesystems }}"
+  with_dict: "{{ common_filesystems }}"

@@ -42,7 +42,7 @@
     assign_instances_ipv6: yes
     cidr: "{{ subnet_ipv4 }}"
     ipv6_cidr: "{{ subnet_ipv6 }}"
-    az: "{{ aws_region }}a"
+    az: "{{ thepoint_ec2_aws_region }}a"
   register: thepoint_ec2_vpc_subnet
 
 
@@ -154,21 +154,21 @@
   amazon.aws.cloudwatchlogs_log_group:
     log_group_name: "{{ cw_group_prod }}"
 
-- name: Provision "{{ hostname }}"
+- name: Provision "{{ thepoint_ec2_hostname }}"
   amazon.aws.ec2_instance:
     key_name: "{{ ssh_id }}"
     security_group: "{{ thepoint_ec2_server_group.group_name }}"
-    instance_type: "{{ aws_instance_type }}"
+    instance_type: "{{ thepoint_ec2_aws_instance_type }}"
     instance_role: "{{ thepoint_ec2_django_role.iam_role.role_name }}"
     image:
-      id: "{{ aws_image }}"
+      id: "{{ thepoint_ec2_aws_image }}"
     wait: yes
     wait_timeout: 600
     volumes:
       - device_name: /dev/sdb
         ebs:
           volume_type: gp3
-          volume_size: "{{ volume_size }}"
+          volume_size: "{{ thepoint_ec2_volume_size }}"
           encrypted: yes
     termination_protection: yes
     metadata_options:
@@ -178,25 +178,25 @@
     user_data: |
       #cloud-config
       apt_upgrade: true
-      hostname: "{{ hostname.split('.')[0] }}"
-      fqdn: "{{ hostname }}"
+      hostname: "{{ thepoint_ec2_hostname.split('.')[0] }}"
+      fqdn: "{{ thepoint_ec2_hostname }}"
       manage_etc_hosts: true
       packages:
         python-apt
       power_state:
         mode: reboot
     tags:
-      Name: "{{ hostname }}"
-      Role: "{{ instance_role }}"
+      Name: "{{ thepoint_ec2_hostname }}"
+      Role: "{{ thepoint_ec2_instance_role }}"
   register: thepoint_ec2_instance
 
 - name: Cloudflare DNS IPv6
   when: thepoint_ec2_instance["instances"]|default()
   community.general.cloudflare_dns:
     state: present
-    zone: "{{ '.'.join(hostname.split('.')[1:]) }}"
+    zone: "{{ '.'.join(thepoint_ec2_hostname.split('.')[1:]) }}"
     type: AAAA
-    record: "{{ hostname.split('.')[0] }}"
+    record: "{{ thepoint_ec2_hostname.split('.')[0] }}"
     value: "{{ item.ipv6_address }}"
     proxied: no
     account_email: "{{ cloudflare_email }}"
