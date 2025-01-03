@@ -2,3 +2,7 @@ skip_list:
   - 'name[casing]'
   - 'name[play]'
   - 'yaml[octal-values]'
+  - 'var-naming[no-role-prefix]'
+  - 'var-naming[pattern]'
+exclude_paths:
+  - '.pre-commit-config.yaml'
