@@ -1,20 +1,31 @@
-[tool.poetry]
+[project]
 name = "thepoint-ansible"
 version = "2.4.0"
 description = ""
-authors = ["Craig Holyoak <craig@helmsdeep.org>"]
+requires-python = ">=3.11"
+authors = [
+    {name = "Craig Holyoak", email = "craig@helmsdeep.org"},
+]
+dependencies = [
+    "mitogen (>=0.3.22)",
+    "ansible (>=11.2.0)",
+    "ansible-lint (>=25.1.0)",
+    "jinja2 (>=3.1.0)",
+    "pyyaml (>=6.0.0)",
+    "boto (>=2.49.0)",
+    "boto3 (>=1.36.0)",
+    "cryptography (>=44.0.0)",
+]
+
+[tool.poetry]
+requires-poetry = ">=2.0"
 package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.11"
-mitogen = "^0.3.14"
-ansible = "^11.1"
-ansible-lint = { version = "^24.9", markers = "platform_system != 'Windows'" }
-jinja2 = "^3.1"
-pyyaml = "^6.0"
-boto = "^2.49"
-boto3 = "^1.35"
-cryptography = "^44.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pre-commit = "~4"
+
+[tool.poetry.requires-plugins]
+poetry-plugin-shell = ">=1.0.0"
