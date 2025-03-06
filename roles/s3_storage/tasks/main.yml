@@ -31,7 +31,7 @@
 - name: S3 lifecycle "{{ s3_storage_bucket }}"
   when: |
     s3_storage_versioning and
-    (transition_days or transition_days or
+    (s3_storage_transition_days or
      s3_storage_noncurrent_version_transition_days or s3_storage_noncurrent_version_expiration_days)
   community.aws.s3_lifecycle:
     state: present

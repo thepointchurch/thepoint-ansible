@@ -89,6 +89,7 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: redis
+              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:
@@ -139,6 +140,7 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: postgres
+              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:
@@ -172,6 +174,7 @@
             AWS_DEFAULT_REGION: "{{ aws_region }}"
             AWS_EC2_METADATA_V1_DISABLED: 'true'
             AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE: IPv6
+            AWS_USE_DUALSTACK_ENDPOINT: 'true'
             VHOST: "{{ thepoint_website_vhost }} localhost"
           restart: unless-stopped
           secrets:
@@ -185,6 +188,7 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: django
+              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:

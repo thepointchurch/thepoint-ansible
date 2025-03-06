@@ -102,6 +102,17 @@
   notify:
     - update-exim4
     - reload_exim
+- name: Disable IPv6 lookups since SES doesn't support it yet
+  ansible.builtin.copy:
+    content: |
+      dns_ipv4_lookup = *amazonaws.com
+    dest: /etc/exim4/conf.d/main/90_exim4-disable_ipv6
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - update-exim4
+    - reload_exim
 - name: Configure Exim credentials
   when:
     - smtp_user is defined
