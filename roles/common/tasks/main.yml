@@ -102,17 +102,6 @@
   notify:
     - update-exim4
     - reload_exim
-- name: Disable IPv6 lookups since SES doesn't support it yet
-  ansible.builtin.copy:
-    content: |
-      dns_ipv4_lookup = *amazonaws.com
-    dest: /etc/exim4/conf.d/main/90_exim4-disable_ipv6
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - update-exim4
-    - reload_exim
 - name: Configure Exim credentials
   when:
     - smtp_user is defined
@@ -129,15 +118,6 @@
       - cron
     state: present
     force: yes
-- name: Configure Syslog format
-  ansible.builtin.lineinfile:
-    state: present
-    create: yes
-    dest: /etc/rsyslog.d/00-rfc3339.conf
-    mode: 0644
-    line: '$ActionFileDefaultTemplate RSYSLOG_FileFormat'
-    regexp: '^\$ActionFileDefaultTemplate '
-  notify: reload_rsyslog
 - name: Format Filesystems
   community.general.filesystem:
     fstype: ext4
@@ -147,7 +127,7 @@
   ansible.posix.mount:
     state: mounted
     src: /dev/{{ item.key }}
-    name: '{{ item.value }}'
+    path: '{{ item.value }}'
     fstype: ext4
     opts: noatime
     passno: 2

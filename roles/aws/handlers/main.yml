@@ -1,9 +1,9 @@
 ---
-- name: restart_cloudwatch
-  ansible.builtin.service:
-    name: amazon-cloudwatch-agent
-    state: restarted
 - name: restart_ssm
   ansible.builtin.service:
     name: amazon-ssm-agent
+    state: restarted
+- name: restart_vector
+  ansible.builtin.service:
+    name: vector
     state: restarted

@@ -1,0 +1,5 @@
+s3_storage_bucket_public_access:
+  block_public_acls: "{{ not s3_storage_public and not s3_storage_website }}"
+  block_public_policy: "{{ not s3_storage_public and not s3_storage_website }}"
+  ignore_public_acls: "{{ not s3_storage_public and not s3_storage_website }}"
+  restrict_public_buckets: "{{ not s3_storage_public and not s3_storage_website }}"

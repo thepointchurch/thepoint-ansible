@@ -175,6 +175,7 @@
       http_put_response_hop_limit: 2
       http_protocol_ipv6: enabled
       http_tokens: required
+    availability_zone: "{{ thepoint_ec2_aws_region }}{{ thepoint_ec2_az }}"
     user_data: |
       #cloud-config
       apt_upgrade: true
@@ -191,7 +192,7 @@
   register: thepoint_ec2_instance
 
 - name: Cloudflare DNS IPv6
-  when: thepoint_ec2_instance["instances"]|default()
+  when: thepoint_ec2_instance["instances"]|default()|length>0
   community.general.cloudflare_dns:
     state: present
     zone: "{{ '.'.join(thepoint_ec2_hostname.split('.')[1:]) }}"

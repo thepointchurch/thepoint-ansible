@@ -13,6 +13,7 @@
     - cloudflare_email is defined
     - cloudflare_token is defined
     - "cloudflare_email.split('@')[1] in item"
+    - thepoint_website_dns
   community.general.cloudflare_dns:
     state: present
     zone: "{{ cloudflare_email.split('@')[1] }}"
@@ -50,12 +51,14 @@
     group: root
     mode: 0644
 - name: "Docker Frontend Network : {{ thepoint_website_shortname }}"
-  community.general.docker_network:
+  community.docker.docker_network:
     name: "frontend_{{ thepoint_website_shortname }}"
+    enable_ipv4: false
     enable_ipv6: true
 - name: "Docker Backend Network : {{ thepoint_website_shortname }}"
-  community.general.docker_network:
+  community.docker.docker_network:
     name: "backend_{{ thepoint_website_shortname }}"
+    enable_ipv4: false
     enable_ipv6: true
 - name: "Redis Configuration : {{ thepoint_website_shortname }}"
   ansible.builtin.copy:
@@ -89,7 +92,6 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: redis
-              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:
@@ -140,7 +142,6 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: postgres
-              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:
@@ -168,12 +169,12 @@
             CACHE_TIMEOUT: "{{ thepoint_website_cache_timeout }}"
             CACHEOPS_ENABLED: "{% if thepoint_website_cache_ops %}on{% endif %}"
             MEDIAFILES_BUCKET: "{{ thepoint_website_media_bucket }}"
-            MEDIAFILES_ENCRYPTED: "{% if thepoint_website_media_encrypted %}on{% endif %}"
             STATICFILES_BUCKET: "{{ thepoint_website_static_bucket }}"
             EMAIL_BACKEND: "{{ thepoint_website_email_backend }}"
             AWS_DEFAULT_REGION: "{{ aws_region }}"
             AWS_EC2_METADATA_V1_DISABLED: 'true'
             AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE: IPv6
+            AWS_S3_ENDPOINT_URL: "https://s3.dualstack.us-west-2.amazonaws.com/"
             AWS_USE_DUALSTACK_ENDPOINT: 'true'
             VHOST: "{{ thepoint_website_vhost }} localhost"
           restart: unless-stopped
@@ -188,7 +189,6 @@
             options:
               awslogs-group: "{{ thepoint_website_log_group }}"
               awslogs-stream: django
-              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:

@@ -1,0 +1,19 @@
+sources:
+  journald_source:
+    type: "journald"
+    exclude_units:
+    - vector
+    - systemd-resolved
+
+sinks:
+  cloudwatch_sink:
+    type: "aws_cloudwatch_logs"
+    inputs:
+    - "journald_source"
+    compression: "gzip"
+    encoding:
+      codec: "json"
+    region: "{{ aws_region }}"
+    endpoint: "https://logs.{{ aws_region }}.api.aws"
+    group_name: "{{ cw_group_test }}"
+    stream_name: "{{ ansible_hostname }}"

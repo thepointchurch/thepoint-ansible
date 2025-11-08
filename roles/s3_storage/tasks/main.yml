@@ -11,6 +11,7 @@
       "Action": "s3:GetObject",
       "Resource": "arn:aws:s3:::{{ s3_storage_bucket }}/*"
       }]}{% else %}null{% endif %}
+    public_access: "{{ s3_storage_bucket_public_access }}"
     versioning: "{{ s3_storage_versioning }}"
     encryption: "{{ s3_storage_encryption }}"
     region: "{{ s3_storage_region }}"
@@ -31,8 +32,9 @@
 - name: S3 lifecycle "{{ s3_storage_bucket }}"
   when: |
     s3_storage_versioning and
-    (s3_storage_transition_days or
-     s3_storage_noncurrent_version_transition_days or s3_storage_noncurrent_version_expiration_days)
+    (s3_storage_transition_days is not none or
+     s3_storage_noncurrent_version_transition_days is not none
+     or s3_storage_noncurrent_version_expiration_days is not none)
   community.aws.s3_lifecycle:
     state: present
     status: enabled

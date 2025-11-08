@@ -19,7 +19,10 @@
     set -o pipefail
     /bin/cat >/etc/aws/config <<AWS_CONFIG
     [default]
-    region = $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | awk -F\" '/region/{print $4}')
+    region = $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document \
+    -H "X-aws-ec2-metadata-token: $(curl -sX PUT http://169.254.169.254/latest/api/token \
+        -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" | awk -F\" '/region/{print $4}')
+    use_dualstack_endpoint = true
     AWS_CONFIG
   args:
     creates: /etc/aws/config
@@ -32,8 +35,8 @@
     mode: 0755
 - name: Download SSM Agent
   ansible.builtin.uri:
-    url: "https://s3.{{ aws_region }}.amazonaws.com/amazon-ssm-{{ aws_region }}\
-      /latest/debian_{{ architecture }}/amazon-ssm-agent.deb"
+    url: "https://s3.dualstack.us-east-1.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/\
+          debian_arm64/amazon-ssm-agent.deb"
     dest: /root/amazon-ssm-agent.deb
     creates: /root/amazon-ssm-agent.deb
     owner: root
@@ -47,53 +50,10 @@
   when: aws_ssm_agent_download.changed
   tags:
     - skip_ansible_lint
-- name: Download Cloudwatch Agent
-  ansible.builtin.uri:
-    url: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/{{ architecture }}/latest/amazon-cloudwatch-agent.deb"
-    dest: /root/amazon-cloudwatch-agent.deb
-    creates: /root/amazon-cloudwatch-agent.deb
-    owner: root
-    group: root
-    mode: 0644
-  register: aws_cw_agent_download
-- name: Install Cloudwatch Agent
-  ansible.builtin.apt:
-    deb: /root/amazon-cloudwatch-agent.deb
-    state: present
-  when: aws_cw_agent_download.changed
-  tags:
-    - skip_ansible_lint
-- name: Cloudwatch Agent User
-  ansible.builtin.user:
-    name: cwagent
-    groups: adm
-    append: yes
-- name: Configure Cloudwatch Agent
-  ansible.builtin.template:
-    src: cloudwatch.json.j2
-    dest: /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.json
-    owner: cwagent
-    group: cwagent
-    mode: 0644
-  notify:
-    - restart_cloudwatch
-- name: Tidy Cloudwatch Agent
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /opt/aws/amazon-cloudwatch-agent/etc/amazon-cloudwatch-agent.yaml
-  notify:
-    - restart_cloudwatch
-- name: Cloudwatch Agent
-  ansible.builtin.service:
-    name: amazon-cloudwatch-agent
-    state: started
-    enabled: true
 - name: Configure SSM Agent
-  ansible.builtin.copy:
-    src: seelog.xml.template
-    dest: /etc/amazon/ssm/seelog.xml.template
+  ansible.builtin.template:
+    src: ssm.json.j2
+    dest: /etc/amazon/ssm/amazon-ssm-agent.json
     owner: root
     group: root
     mode: 0644
@@ -102,5 +62,45 @@
 - name: SSM Agent
   ansible.builtin.service:
     name: amazon-ssm-agent
+    state: started
+    enabled: true
+- name: Datadog Repository Key
+  ansible.builtin.get_url:
+    url: https://keys.datadoghq.com/DATADOG_APT_KEY_CURRENT.public
+    dest: /etc/apt/trusted.gpg.d/datadog-archive-keyring.asc
+    owner: root
+    group: root
+    mode: 0644
+- name: Vector Repository
+  ansible.builtin.deb822_repository:
+    state: present
+    name: vector
+    components:
+      - vector-0
+    suites:
+      - stable
+    signed_by: /etc/apt/trusted.gpg.d/datadog-archive-keyring.asc
+    uris:
+      - https://apt.vector.dev/
+  register: aws_apt_vector
+- name: Install Vector
+  ansible.builtin.apt:
+    pkg:
+      - vector
+    state: present
+    force: yes
+    update_cache: "{{ aws_apt_vector.changed | lower }}"
+- name: Configure Vector
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: /etc/vector/vector.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart_vector
+- name: Vector Service
+  ansible.builtin.service:
+    name: vector
     state: started
     enabled: true

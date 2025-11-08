@@ -3,8 +3,8 @@ ansible_python_interpreter: /usr/bin/python3
 ansible_user: admin
 root_mail: admin@thepoint.org.au
 root_from: admin@thepoint.org.au
-smtp_relay: "email-smtp.{{ ansible_ec2_placement_region }}.amazonaws.com::587"
-smtp_relay_domain: amazonaws.com
+smtp_relay: "email-smtp.{{ ansible_ec2_placement_region }}.api.aws::587"
+smtp_relay_domain: api.aws
 common_ntp_servers:
   - fd00:ec2::123
 certbot_tag: "{{ ':arm64v8-latest' if architecture == 'arm64' else '' }}"

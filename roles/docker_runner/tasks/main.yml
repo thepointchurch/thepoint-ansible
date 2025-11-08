@@ -13,23 +13,23 @@
       FROM alpine:latest
       RUN apk update && apk add --no-cache docker-cli
       CMD ["sh", "-c", "crond -L /dev/stdout -f | awk '{ print strftime(\"[%Y-%m-%d %H:%M:%S]\"), $0 }'"]
-    dest: "/etc/Dockerfile.runner"
+    dest: "/data/Dockerfile.runner"
     owner: root
     group: root
     mode: 0644
   register: docker_runner_config_status
 - name: Docker Runner Image
-  community.general.docker_image:
+  community.docker.docker_image:
     name: runner
     source: build
     force_source: "{% if docker_runner_config_status.changed %}yes{% else %}no{% endif %}"
     build:
       pull: yes
-      dockerfile: /etc/Dockerfile.runner
+      dockerfile: Dockerfile.runner
       path: /data
       rm: yes
 - name: Docker Runner Container
-  community.general.docker_container:
+  community.docker.docker_container:
     name: runner
     image: runner
     state: started
@@ -44,7 +44,6 @@
     log_options:
       awslogs-group: "{{ docker_runner_log_group }}"
       awslogs-stream: runner
-      awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
     cap_drop:
       - ALL
     capabilities:

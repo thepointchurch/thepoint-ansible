@@ -3,3 +3,4 @@ thepoint_ec2_aws_region: us-west-2
 thepoint_ec2_aws_instance_type: t4g.small
 thepoint_ec2_aws_image: ami-0cf467cdd983a5859
 thepoint_ec2_volume_size: 4
+thepoint_ec2_az: a

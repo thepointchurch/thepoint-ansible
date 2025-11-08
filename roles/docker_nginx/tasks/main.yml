@@ -39,7 +39,6 @@
             options:
               awslogs-group: "{{ docker_nginx_log_group }}"
               awslogs-stream: nginx
-              awslogs-endpoint: "https://logs.{{ aws_region }}.api.aws/"
           cap_drop:
             - ALL
           cap_add:

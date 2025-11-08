@@ -38,10 +38,17 @@
     group: root
     mode: 0644
 - name: Docker Repository
-  ansible.builtin.apt_repository:
-    repo: "deb https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+  ansible.builtin.deb822_repository:
     state: present
-    filename: docker
+    name: docker
+    components:
+      - stable
+    suites:
+      - "{{ ansible_distribution_release }}"
+    signed_by: /etc/apt/trusted.gpg.d/docker.asc
+    uris:
+      - https://download.docker.com/linux/debian
+  register: docker_apt_docker
 - name: Install Docker
   ansible.builtin.apt:
     pkg:
@@ -52,6 +59,7 @@
       - python3-docker
     state: present
     force: yes
+    update_cache: "{{ docker_apt_docker.changed | lower }}"
 - name: NGINX config directory
   ansible.builtin.file:
     state: directory
@@ -73,7 +81,7 @@
       authenticator = dns-cloudflare
       dns-cloudflare-credentials = /etc/letsencrypt/cloudflare.ini
       dns-cloudflare-propagation-seconds = 20
-      server = https://acme-v02.api.letsencrypt.org/directory
+      server = https://{{ acme_url }}
     dest: /data/acme/cli.ini
     owner: root
     group: root
@@ -116,12 +124,6 @@
     owner: root
     group: root
     mode: 0750
-- name: GitHub Packages
-  community.general.docker_login:
-    state: present
-    registry: ghcr.io
-    username: "{{ github_user }}"
-    password: "{{ github_token }}"
 - name: Docker Prune
   ansible.builtin.cron:
     name: docker_prune
@@ -129,14 +131,14 @@
     hour: "19"
     minute: "0"
 - name: Certbot Container
-  community.general.docker_image:
+  community.docker.docker_image:
     name: "certbot/dns-cloudflare{{ certbot_tag }}"
     source: pull
 - name: LetsEncrypt Register
   ansible.builtin.command:
     cmd: "docker run -v '/data/acme:/etc/letsencrypt:rw' \
           certbot/dns-cloudflare{{ certbot_tag }} register -n --agree-tos"
-    creates: "/data/acme/accounts/acme-v02.api.letsencrypt.org/directory/*/private_key.json"
+    creates: "/data/acme/accounts/{{ acme_url }}/*/private_key.json"
 - name: LetsEncrypt Deploy Hook
   ansible.builtin.copy:
     content: |

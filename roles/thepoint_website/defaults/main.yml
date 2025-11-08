@@ -13,5 +13,5 @@ thepoint_website_cache_ops: false
 thepoint_website_log_group: thepoint
 thepoint_website_frontend_nets: []
 thepoint_website_cron: true
-thepoint_website_media_encrypted: true
 thepoint_website_settings: thepoint.settings
+thepoint_website_dns: true
