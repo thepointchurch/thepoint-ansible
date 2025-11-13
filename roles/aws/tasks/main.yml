@@ -15,18 +15,15 @@
     group: root
     mode: 0755
 - name: Configure AWS CLI
-  ansible.builtin.shell: |
-    set -o pipefail
-    /bin/cat >/etc/aws/config <<AWS_CONFIG
-    [default]
-    region = $(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document \
-    -H "X-aws-ec2-metadata-token: $(curl -sX PUT http://169.254.169.254/latest/api/token \
-        -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")" | awk -F\" '/region/{print $4}')
-    use_dualstack_endpoint = true
-    AWS_CONFIG
-  args:
-    creates: /etc/aws/config
-    executable: /bin/bash
+  ansible.builtin.copy:
+    content: |
+      [default]
+      region = {{ aws_region }}
+      use_dualstack_endpoint = true
+    dest: /etc/aws/config
+    owner: root
+    group: root
+    mode: 0644
 - name: Link root AWS CLI config
   ansible.builtin.file:
     state: link
