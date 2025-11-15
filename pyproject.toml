@@ -2,27 +2,27 @@
 name = "thepoint-ansible"
 version = "2.4.0"
 description = ""
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 authors = [
     {name = "Craig Holyoak", email = "craig@helmsdeep.org"},
 ]
 dependencies = [
-    "mitogen (>=0.3.22)",
-    "ansible (>=11.2.0)",
-    "ansible-lint (>=25.1.0)",
-    "jinja2 (>=3.1.0)",
-    "pyyaml (>=6.0.0)",
+    "mitogen (>=0.3.31)",
+    "ansible (>=12.2.0)",
+    "ansible-lint (>=25.9.2)",
+    "jinja2 (>=3.1.6)",
+    "pyyaml (>=6.0.3)",
     "boto (>=2.49.0)",
-    "boto3 (>=1.36.0)",
-    "cryptography (>=44.0.0)",
+    "boto3 (>=1.40.69)",
+    "cryptography (>=46.0.3)",
 ]
 
 [tool.poetry]
-requires-poetry = ">=2.0"
+requires-poetry = ">=2.2"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.13"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "~4"
