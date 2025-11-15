@@ -1,7 +1,7 @@
 ---
 aws_region: us-west-2
 thepoint_ec2_aws_instance_type: t4g.small
-thepoint_ec2_aws_image: ami-0cf467cdd983a5859
+thepoint_ec2_aws_image: ami-00f9bd78b9eb2c2d0
 net_ipv4: 172.31.0.0/16
 subnets:
   a:

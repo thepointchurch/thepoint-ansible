@@ -64,5 +64,5 @@
 
     - thepoint_ec2_docker:
       role: thepoint_ec2
-      thepoint_ec2_hostname: junia.thepoint.org.au
+      thepoint_ec2_hostname: persis.thepoint.org.au
       thepoint_ec2_instance_role: thepoint_docker
