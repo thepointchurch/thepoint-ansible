@@ -4,3 +4,7 @@
     name: disable-transparent-huge-pages
     state: started
     daemon_reload: true
+- name: reload_docker
+  ansible.builtin.service:
+    name: docker
+    state: restarted

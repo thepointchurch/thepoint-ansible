@@ -38,12 +38,12 @@
   amazon.aws.ec2_vpc_subnet:
     state: present
     vpc_id: "{{ thepoint_ec2_vpc_details.vpc.id }}"
-    map_public: yes
+    map_public: no
     assign_instances_ipv6: yes
-    cidr: "{{ subnet_ipv4 }}"
-    ipv6_cidr: "{{ subnet_ipv6 }}"
-    az: "{{ thepoint_ec2_aws_region }}a"
-  register: thepoint_ec2_vpc_subnet
+    cidr: "{{ item.value.ipv4 }}"
+    ipv6_cidr: "{{ item.value.ipv6 }}"
+    az: "{{ thepoint_ec2_aws_region }}{{ item.key }}"
+  loop: "{{ subnets|dict2items }}"
 
 
 - name: IAM role EC2

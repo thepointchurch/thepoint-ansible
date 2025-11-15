@@ -117,6 +117,8 @@
     owner: root
     group: root
     mode: 0644
+  notify:
+    - reload_docker
 - name: Create Docker secrets directory
   ansible.builtin.file:
     state: directory
@@ -124,6 +126,8 @@
     owner: root
     group: root
     mode: 0750
+- name: foo
+  ansible.builtin.meta: flush_handlers
 - name: Docker Prune
   ansible.builtin.cron:
     name: docker_prune
