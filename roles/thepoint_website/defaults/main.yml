@@ -1,5 +1,5 @@
 ---
-thepoint_website_vhost: "www.{{ ansible_domain }} {{ ansible_domain }}"
+thepoint_website_vhost: "www.{{ ansible_facts['domain'] }} {{ ansible_facts['domain'] }}"
 thepoint_website_workers: 3
 thepoint_website_threads: 12
 thepoint_website_db_password: '1234567890'

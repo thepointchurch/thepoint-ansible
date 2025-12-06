@@ -16,4 +16,4 @@ sinks:
     region: "{{ aws_region }}"
     endpoint: "https://logs.{{ aws_region }}.api.aws"
     group_name: "{{ cw_group_test }}"
-    stream_name: "{{ ansible_hostname }}"
+    stream_name: "{{ ansible_facts['hostname'] }}"
