@@ -125,7 +125,7 @@
     content: |
       services:
         db:
-          image: postgres:15-alpine
+          image: postgres:{{ thepoint_website_postgres_release }}-alpine
           container_name: "db_{{ thepoint_website_shortname }}"
           environment:
             POSTGRES_USER: thepoint
