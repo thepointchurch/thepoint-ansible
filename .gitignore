@@ -2,3 +2,5 @@
 .*.swp
 *.pyc
 vault.yml
+.venv/
+.env
