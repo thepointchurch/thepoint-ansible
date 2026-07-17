@@ -140,6 +140,7 @@
     policy_json:
       Statement:
         - Action:
+            - 'ses:GetAccount'
             - 'ses:SendEmail'
             - 'ses:SendRawEmail'
           Effect: Allow

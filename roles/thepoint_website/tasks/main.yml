@@ -238,8 +238,8 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
   loop:
-    - line: "0 14 * * * docker exec django_{{ thepoint_website_shortname }} upperroom-sendrosteremails"
-      regexp: " docker exec django_{{ thepoint_website_shortname }} upperroom-sendrosteremails"
+    - line: "0 14 * * * docker exec django_{{ thepoint_website_shortname }} upperroom sendrosteremails"
+      regexp: " docker exec django_{{ thepoint_website_shortname }} upperroom[- ]sendrosteremails"
   notify:
     - runner_restart
 - name: "Crontab : {{ thepoint_website_shortname }}"
